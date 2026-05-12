@@ -3,14 +3,14 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "phantom-steg"
+name = "goldenshell"
 version = "1.0.0"
 description = "Hide files inside other files - Steganography & Polyglot CLI Tool"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [
-    {name = "Phantom Team"},
+    {name = "GoldenShell Team"},
 ]
 keywords = ["steganography", "polyglot", "security", "CLI", "red-team"]
 classifiers = [
@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.scripts]
-phantom = "phantom.cli:app"
+goldenshell = "phantom.cli:app"
 
 [tool.setuptools.packages.find]
 include = ["phantom*"]

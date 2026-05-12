@@ -1,4 +1,4 @@
-"""Allow running phantom as a module: python -m phantom"""
+"""Allow running goldenshell as a module: python -m phantom"""
 from phantom.cli import app
 
 app()

@@ -1,5 +1,5 @@
 """
-Main engine module for Phantom.
+Main engine module for GoldenShell.
 
 Provides high-level hide/extract operations
 by orchestrating the protocol, crypto, compression, and packer modules.
@@ -30,7 +30,7 @@ from .packer import PackedFile, pack_files, unpack_files, pack_from_paths
 
 
 class PhantomError(Exception):
-    """Base exception for Phantom operations."""
+    """Base exception for GoldenShell operations."""
     pass
 
 
@@ -218,7 +218,7 @@ def extract(
     # Find magic
     magic_pos = find_magic(file_data)
     if magic_pos is None:
-        raise PayloadNotFoundError(f"No Phantom magic found in: {steg_file_path}")
+        raise PayloadNotFoundError(f"No GoldenShell magic found in: {steg_file_path}")
 
     # Parse header
     header_data = file_data[magic_pos:]

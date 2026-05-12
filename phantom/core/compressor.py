@@ -1,5 +1,5 @@
 """
-Compression module for Phantom.
+Compression module for GoldenShell.
 
 Provides zlib compression/decompression for payload size reduction.
 """

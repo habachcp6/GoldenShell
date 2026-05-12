@@ -1,1 +1,1 @@
-"""Core engine modules for Phantom steganography tool."""
+"""Core engine modules for GoldenShell steganography tool."""

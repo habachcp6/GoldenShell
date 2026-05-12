@@ -1,8 +1,8 @@
-# 👻 Phantom — Hide Files Inside Other Files
+# 🐚 GoldenShell — Hide Files Inside Other Files
 
 > **Steganography & Polyglot CLI Tool** — Cross-platform (Windows, Linux, macOS, Docker)
 
-Phantom hides files inside other files using binary stacking technique with AES-256-GCM encryption. The carrier file (PDF, PNG, JPEG, etc.) remains fully functional — it opens normally in any viewer — while secretly containing your hidden payload.
+GoldenShell hides files inside other files using binary stacking technique with AES-256-GCM encryption. The carrier file (PDF, PNG, JPEG, etc.) remains fully functional — it opens normally in any viewer — while secretly containing your hidden payload.
 
 ## ✨ Features
 
@@ -20,14 +20,13 @@ Phantom hides files inside other files using binary stacking technique with AES-
 
 ### pip (Recommended)
 ```bash
-cd phantom
 pip install .
 ```
 
 ### Docker
 ```bash
-docker build -t phantom .
-docker run -v $(pwd):/workspace phantom hide carrier.pdf secret.txt -o output.pdf
+docker build -t goldenshell .
+docker run -v $(pwd):/workspace goldenshell hide carrier.pdf secret.txt -o output.pdf
 ```
 
 ## 🚀 Usage
@@ -35,27 +34,27 @@ docker run -v $(pwd):/workspace phantom hide carrier.pdf secret.txt -o output.pd
 ### Hide a file
 ```bash
 # Hide secret.exe inside report.pdf
-phantom hide report.pdf secret.exe -o output.pdf
+goldenshell hide report.pdf secret.exe -o output.pdf
 
 # With encryption
-phantom hide report.pdf secret.exe -o output.pdf -p "mypassword"
+goldenshell hide report.pdf secret.exe -o output.pdf -p "mypassword"
 
 # Hide multiple files
-phantom hide image.png file1.txt file2.zip file3.docx -o steg_image.png -p "pass"
+goldenshell hide image.png file1.txt file2.zip file3.docx -o steg_image.png -p "pass"
 ```
 
 ### Extract hidden files
 ```bash
 # Extract to directory
-phantom extract output.pdf -o ./extracted/
+goldenshell extract output.pdf -o ./extracted/
 
 # With password
-phantom extract output.pdf -o ./extracted/ -p "mypassword"
+goldenshell extract output.pdf -o ./extracted/ -p "mypassword"
 ```
 
 ## 🔧 How It Works
 
-Phantom uses **binary concatenation (stacking)** to append encrypted payload data after the carrier file's valid content. Most file parsers (PDF readers, image viewers, etc.) only read the format-specific portion and ignore trailing data.
+GoldenShell uses **binary concatenation (stacking)** to append encrypted payload data after the carrier file's valid content. Most file parsers (PDF readers, image viewers, etc.) only read the format-specific portion and ignore trailing data.
 
 ```
 [Carrier File] + [MAGIC] + [Header] + [Encrypted Payload] + [Footer]

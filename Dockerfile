@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 
-LABEL maintainer="Phantom Team"
-LABEL description="Phantom - Hide files inside other files"
+LABEL maintainer="GoldenShell Team"
+LABEL description="GoldenShell - Hide files inside other files"
 
 WORKDIR /app
 
@@ -9,11 +9,11 @@ WORKDIR /app
 COPY pyproject.toml .
 COPY phantom/ phantom/
 
-# Install phantom
+# Install goldenshell
 RUN pip install --no-cache-dir .
 
 # Create working directory for user files
 WORKDIR /workspace
 
-ENTRYPOINT ["phantom"]
+ENTRYPOINT ["goldenshell"]
 CMD ["--help"]

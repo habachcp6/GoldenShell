@@ -1,5 +1,5 @@
 """
-Comprehensive test suite for Phantom Steganography Tool.
+Comprehensive test suite for GoldenShell Steganography Tool.
 Agent: test-engineer
 Tests all features: hide, extract, encryption, multi-file, integrity.
 """
@@ -51,17 +51,15 @@ class TestResult:
 
 def run_all_tests():
     result = TestResult()
-    tmp = tempfile.mkdtemp(prefix="phantom_test_")
+    tmp = tempfile.mkdtemp(prefix="goldenshell_test_")
 
     try:
-        # ============================================================
-        # AGENT: test-engineer — Module Tests
         # ============================================================
         print("\n[TEST GROUP 1] Crypto Module")
 
         # Test 1: Encrypt/Decrypt roundtrip
         try:
-            data = b"Hello Phantom! This is secret data." * 100
+            data = b"Hello GoldenShell! This is secret data." * 100
             ct, nonce, salt, tag = encrypt_payload(data, "testpass123")
             decrypted = decrypt_payload(ct, nonce, salt, tag, "testpass123")
             assert decrypted == data, "Decrypted data mismatch"
@@ -96,7 +94,7 @@ def run_all_tests():
 
         # Test 4: Compress/decompress roundtrip
         try:
-            data = b"AAAA" * 10000  # Highly compressible
+            data = b"AAAA" * 10000
             compressed = compress(data)
             decompressed = decompress(compressed)
             assert decompressed == data, "Decompressed data mismatch"
@@ -195,7 +193,7 @@ def run_all_tests():
         carrier_path.write_bytes(b"%PDF-1.4 Fake PDF carrier content for testing " * 10)
 
         payload_path = Path(tmp) / "secret.txt"
-        payload_path.write_bytes(b"This is TOP SECRET data hidden by Phantom!")
+        payload_path.write_bytes(b"This is TOP SECRET data hidden by GoldenShell!")
 
         # Test 9: Hide + Extract (no encryption)
         try:
@@ -245,7 +243,7 @@ def run_all_tests():
             file_b = Path(tmp) / "file_b.bin"
             file_c = Path(tmp) / "file_c.py"
             file_a.write_bytes(b"File A content - text data")
-            file_b.write_bytes(os.urandom(256))  # Random binary
+            file_b.write_bytes(os.urandom(256))
             file_c.write_bytes(b"print('File C - Python script')")
 
             output_multi = Path(tmp) / "multi_steg.pdf"
@@ -256,7 +254,6 @@ def run_all_tests():
 
             assert len(extracted) == 3, f"Expected 3 files, got {len(extracted)}"
 
-            # Verify each file
             for orig_path in [file_a, file_b, file_c]:
                 matching = [f for f in extracted if f.name == orig_path.name]
                 assert len(matching) == 1, f"Missing file: {orig_path.name}"
@@ -287,7 +284,7 @@ def run_all_tests():
         # Test 14: Large payload
         try:
             large_file = Path(tmp) / "large.bin"
-            large_data = os.urandom(1024 * 1024)  # 1MB random data
+            large_data = os.urandom(1024 * 1024)
             large_file.write_bytes(large_data)
 
             output_large = Path(tmp) / "steg_large.pdf"
@@ -326,7 +323,6 @@ def run_all_tests():
             result.fail("engine_extract_clean_file_rejected", str(e))
 
     finally:
-        # Cleanup
         shutil.rmtree(tmp, ignore_errors=True)
 
     return result.summary()
@@ -334,7 +330,7 @@ def run_all_tests():
 
 if __name__ == "__main__":
     print("=" * 60)
-    print("  PHANTOM TEST SUITE — Agent: test-engineer")
+    print("  GOLDENSHELL TEST SUITE")
     print("=" * 60)
 
     success = run_all_tests()

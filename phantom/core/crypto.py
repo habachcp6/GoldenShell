@@ -1,5 +1,5 @@
 """
-Cryptographic module for Phantom.
+Cryptographic module for GoldenShell.
 
 Provides AES-256-GCM encryption/decryption with PBKDF2 key derivation.
 """

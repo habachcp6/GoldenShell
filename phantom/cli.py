@@ -1,9 +1,9 @@
 """
-Phantom CLI - Hide files inside other files.
+GoldenShell CLI - Hide files inside other files.
 
 Usage:
-    phantom hide <carrier> <payload...> -o <output> [-p password]
-    phantom extract <file> -o <output_dir> [-p password]
+    goldenshell hide <carrier> <payload...> -o <output> [-p password]
+    goldenshell extract <file> -o <output_dir> [-p password]
 """
 
 import sys
@@ -29,8 +29,8 @@ from .core.engine import (
 
 console = Console()
 app = typer.Typer(
-    name="phantom",
-    help="👻 Phantom - Hide files inside other files",
+    name="goldenshell",
+    help="🐚 GoldenShell - Hide files inside other files",
     add_completion=False,
     no_args_is_help=True,
     rich_markup_mode="rich",
@@ -53,7 +53,7 @@ def format_size(size_bytes: int) -> str:
 
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
-    """👻 Phantom - Steganography & Polyglot CLI Tool"""
+    """🐚 GoldenShell - Steganography & Polyglot CLI Tool"""
     if ctx.invoked_subcommand is None:
         show_banner()
 
@@ -80,8 +80,8 @@ def hide(
     🔒 Hide file(s) inside a carrier file.
 
     Examples:
-        phantom hide report.pdf secret.exe -o output.pdf -p "mypassword"
-        phantom hide image.png file1.txt file2.zip -o steg_image.png
+        goldenshell hide report.pdf secret.exe -o output.pdf -p "mypassword"
+        goldenshell hide image.png file1.txt file2.zip -o steg_image.png
     """
     console.print(BANNER_SMALL)
     console.print()
@@ -165,8 +165,8 @@ def extract(
     📤 Extract hidden file(s) from a steganography file.
 
     Examples:
-        phantom extract output.pdf -o ./extracted/ -p "mypassword"
-        phantom extract steg_image.png -o ./out/
+        goldenshell extract output.pdf -o ./extracted/ -p "mypassword"
+        goldenshell extract steg_image.png -o ./out/
     """
     console.print(BANNER_SMALL)
     console.print()

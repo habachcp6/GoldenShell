@@ -1,5 +1,5 @@
 """
-STEG Binary Protocol definition for Phantom.
+STEG Binary Protocol definition for GoldenShell.
 
 Defines the binary format used to embed hidden payloads inside carrier files.
 Protocol layout:
@@ -11,9 +11,9 @@ from dataclasses import dataclass, field
 from enum import IntFlag
 from typing import Optional
 
-# Magic bytes to identify Phantom payloads
-MAGIC = b"\x00PHANTOM\xff"  # 9 bytes
-FOOTER_MAGIC = b"\xff\x00PHTM\xff\x00"  # 8 bytes
+# Magic bytes to identify GoldenShell payloads
+MAGIC = b"\x00PHANTOM\xff"  # 9 bytes (kept for backward compatibility)
+FOOTER_MAGIC = b"\xff\x00PHTM\xff\x00"  # 8 bytes (kept for backward compatibility)
 PROTOCOL_VERSION = 1
 
 # Header struct format (fixed part):
@@ -45,7 +45,7 @@ class StegFlags(IntFlag):
 
 @dataclass
 class StegHeader:
-    """Represents the metadata header of a Phantom payload."""
+    """Represents the metadata header of a GoldenShell payload."""
     version: int = PROTOCOL_VERSION
     flags: int = StegFlags.NONE
     nonce: bytes = field(default_factory=lambda: b"\x00" * 12)
