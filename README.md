@@ -18,9 +18,27 @@ GoldenShell hides files inside other files using binary stacking technique with 
 
 ## 📦 Installation
 
-### pip (Recommended)
+> **Requires**: Python 3.10+
+
+### pip (Recommended — use a virtual environment)
+```bash
+git clone https://github.com/habachcp6/GoldenShell.git
+cd GoldenShell
+python -m venv venv
+# Windows:
+venv\Scripts\activate
+# Linux/macOS:
+# source venv/bin/activate
+pip install .
+```
+
+After activating the virtual environment, the `goldenshell` command will be available directly.
+
+### Alternative (without venv)
 ```bash
 pip install .
+# Use python -m phantom if goldenshell is not in PATH:
+python -m phantom --help
 ```
 
 ### Docker
@@ -52,6 +70,8 @@ goldenshell extract output.pdf -o ./extracted/
 goldenshell extract output.pdf -o ./extracted/ -p "mypassword"
 ```
 
+> **Tip**: If `goldenshell` is not found, use `python -m phantom` instead.
+
 ## 🔧 How It Works
 
 GoldenShell uses **binary concatenation (stacking)** to append encrypted payload data after the carrier file's valid content. Most file parsers (PDF readers, image viewers, etc.) only read the format-specific portion and ignore trailing data.
@@ -68,6 +88,12 @@ The payload goes through: **Compression → Encryption → Embedding**.
 - **PBKDF2-HMAC-SHA256** key derivation (600,000 iterations)
 - **SHA-256** integrity verification with constant-time comparison
 - **Path traversal protection** for extracted filenames
+
+## 🧪 Running Tests
+
+```bash
+python tests/test_full_suite.py
+```
 
 ## ⚠️ Disclaimer
 
