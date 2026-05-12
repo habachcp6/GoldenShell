@@ -14,7 +14,7 @@ Pack format:
 
 import struct
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 
 @dataclass
@@ -31,6 +31,35 @@ class PackedFile:
 # Pack format constants
 FILE_COUNT_FORMAT = "!I"  # uint32, 4 bytes
 FILE_ENTRY_HEADER_FORMAT = "!HQ"  # uint16 fname_len + uint64 data_len = 10 bytes
+
+
+def _sanitize_filename(filename: str) -> str:
+    """
+    Sanitize filename to prevent path traversal attacks.
+
+    Strips directory components and dangerous characters,
+    keeping only the basename.
+
+    Args:
+        filename: Raw filename from packed data
+
+    Returns:
+        Safe filename (basename only)
+
+    Raises:
+        ValueError: If filename is empty after sanitization
+    """
+    # Strip any directory components (prevents ../../etc/passwd)
+    safe_name = PurePosixPath(filename).name
+    # Also handle Windows-style paths
+    safe_name = Path(safe_name).name
+    # Remove any null bytes
+    safe_name = safe_name.replace("\x00", "")
+
+    if not safe_name:
+        raise ValueError(f"Invalid filename after sanitization: {filename!r}")
+
+    return safe_name
 
 
 def pack_files(files: list[PackedFile]) -> bytes:
@@ -74,6 +103,7 @@ def unpack_files(data: bytes) -> list[PackedFile]:
 
     Raises:
         struct.error: If data format is invalid
+        ValueError: If any filename is invalid after sanitization
     """
     offset = 0
     files = []
@@ -93,8 +123,9 @@ def unpack_files(data: bytes) -> list[PackedFile]:
         )
         offset += entry_header_size
 
-        # Read filename
-        filename = data[offset : offset + fname_len].decode("utf-8")
+        # Read and sanitize filename (prevent path traversal)
+        raw_filename = data[offset : offset + fname_len].decode("utf-8")
+        filename = _sanitize_filename(raw_filename)
         offset += fname_len
 
         # Read file data

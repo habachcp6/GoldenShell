@@ -1,7 +1,7 @@
 """
 Main engine module for Phantom.
 
-Provides high-level hide/extract/inspect/info operations
+Provides high-level hide/extract operations
 by orchestrating the protocol, crypto, compression, and packer modules.
 """
 
@@ -277,72 +277,3 @@ def extract(
         extracted_paths.append(out_path)
 
     return extracted_paths
-
-
-def inspect(file_path: str | Path) -> bool:
-    """
-    Quick check if a file contains a hidden Phantom payload.
-
-    Args:
-        file_path: Path to the file to inspect
-
-    Returns:
-        True if file contains a hidden payload, False otherwise
-    """
-    file_path = Path(file_path)
-    if not file_path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-    file_data = file_path.read_bytes()
-
-    footer_pos = find_footer(file_data)
-    if footer_pos is None:
-        return False
-
-    magic_pos = find_magic(file_data)
-    return magic_pos is not None
-
-
-def info(file_path: str | Path) -> Optional[PayloadInfo]:
-    """
-    Get metadata about a hidden payload without extracting it.
-
-    Args:
-        file_path: Path to the file to inspect
-
-    Returns:
-        PayloadInfo if payload found, None otherwise
-    """
-    file_path = Path(file_path)
-    if not file_path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
-
-    file_data = file_path.read_bytes()
-
-    # Find footer
-    footer_pos = find_footer(file_data)
-    if footer_pos is None:
-        return None
-
-    # Find magic
-    magic_pos = find_magic(file_data)
-    if magic_pos is None:
-        return None
-
-    # Parse header
-    header_data = file_data[magic_pos:]
-    header = StegHeader.unpack(header_data)
-
-    # Carrier size = everything before MAGIC
-    carrier_size = magic_pos - len(MAGIC)
-
-    return PayloadInfo(
-        filename=header.filename,
-        payload_size=header.payload_size,
-        is_encrypted=header.is_encrypted,
-        is_compressed=header.is_compressed,
-        is_multi_file=header.is_multi_file,
-        checksum_hex=header.checksum.hex(),
-        version=header.version,
-        carrier_size=carrier_size,
-    )

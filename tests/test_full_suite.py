@@ -1,7 +1,7 @@
 """
 Comprehensive test suite for Phantom Steganography Tool.
 Agent: test-engineer
-Tests all features: hide, extract, inspect, info, encryption, multi-file, integrity.
+Tests all features: hide, extract, encryption, multi-file, integrity.
 """
 
 import os
@@ -14,7 +14,7 @@ from pathlib import Path
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from phantom.core.engine import hide, extract, inspect, info
+from phantom.core.engine import hide, extract
 from phantom.core.engine import PayloadNotFoundError, DecryptionError, IntegrityError
 from phantom.core.crypto import encrypt_payload, decrypt_payload, compute_checksum, verify_checksum
 from phantom.core.compressor import compress, decompress, is_worth_compressing
@@ -133,6 +133,22 @@ def run_all_tests():
         except Exception as e:
             result.fail("packer_multi_file_roundtrip", str(e))
 
+        # Test 6b: Path traversal protection
+        try:
+            malicious_files = [
+                PackedFile("../../etc/passwd", b"root:x:0:0"),
+                PackedFile("..\\..\\windows\\system32\\config", b"evil"),
+            ]
+            packed = pack_files(malicious_files)
+            unpacked = unpack_files(packed)
+            for pf in unpacked:
+                assert "/" not in pf.filename, f"Path traversal not sanitized: {pf.filename}"
+                assert "\\" not in pf.filename, f"Path traversal not sanitized: {pf.filename}"
+                assert ".." not in pf.filename, f"Path traversal not sanitized: {pf.filename}"
+            result.ok("packer_path_traversal_protection")
+        except Exception as e:
+            result.fail("packer_path_traversal_protection", str(e))
+
         # ============================================================
         print("\n[TEST GROUP 4] Protocol Module")
 
@@ -220,81 +236,10 @@ def run_all_tests():
         except Exception as e:
             result.fail("engine_wrong_password_rejected", str(e))
 
-        # Test 12: Inspect (has payload)
-        try:
-            assert inspect(output_path) == True, "Should detect payload"
-            result.ok("engine_inspect_has_payload")
-        except Exception as e:
-            result.fail("engine_inspect_has_payload", str(e))
-
-        # Test 13: Inspect (clean file)
-        try:
-            assert inspect(carrier_path) == False, "Should not detect payload in clean file"
-            result.ok("engine_inspect_clean_file")
-        except Exception as e:
-            result.fail("engine_inspect_clean_file", str(e))
-
-        # Test 14: Info
-        try:
-            payload_info = info(output_enc)
-            assert payload_info is not None
-            assert payload_info.is_encrypted == True
-            assert payload_info.filename == "secret.txt"
-            assert payload_info.version == 1
-            result.ok("engine_info_metadata")
-        except Exception as e:
-            result.fail("engine_info_metadata", str(e))
-
-        # Test 15: Info on clean file
-        try:
-            clean_info = info(carrier_path)
-            assert clean_info is None, "Should return None for clean file"
-            result.ok("engine_info_clean_file_returns_none")
-        except Exception as e:
-            result.fail("engine_info_clean_file_returns_none", str(e))
-
         # ============================================================
-        print("\n[TEST GROUP 6] Engine — Malware Payload Test")
+        print("\n[TEST GROUP 6] Engine — Multi-file Test")
 
-        # Test 16: Hide real malware script
-        try:
-            malware_path = Path("d:/CTF-test/phantom/test_malware.py")
-            if malware_path.exists():
-                output_malware = Path(tmp) / "innocent_report.pdf"
-                extract_malware = Path(tmp) / "extracted_malware"
-
-                result_info = hide(
-                    carrier_path, [malware_path], output_malware,
-                    password="M@lw4r3T3st!"
-                )
-
-                assert result_info.is_encrypted == True
-                assert result_info.filename == "test_malware.py"
-
-                # Carrier should still be "readable" (starts with original content)
-                output_data = output_malware.read_bytes()
-                assert output_data[:5] == b"%PDF-", "Output should still start like a PDF"
-
-                # Extract and verify
-                extracted = extract(output_malware, extract_malware, password="M@lw4r3T3st!")
-                assert len(extracted) == 1
-                assert extracted[0].name == "test_malware.py"
-
-                # SHA-256 integrity check
-                original_hash = hashlib.sha256(malware_path.read_bytes()).hexdigest()
-                extracted_hash = hashlib.sha256(extracted[0].read_bytes()).hexdigest()
-                assert original_hash == extracted_hash, f"Hash mismatch: {original_hash} vs {extracted_hash}"
-
-                result.ok("engine_malware_hide_extract_integrity")
-            else:
-                result.fail("engine_malware_hide_extract_integrity", "test_malware.py not found")
-        except Exception as e:
-            result.fail("engine_malware_hide_extract_integrity", str(e))
-
-        # ============================================================
-        print("\n[TEST GROUP 7] Engine — Multi-file Test")
-
-        # Test 17: Hide multiple files
+        # Test 12: Hide multiple files
         try:
             file_a = Path(tmp) / "file_a.txt"
             file_b = Path(tmp) / "file_b.bin"
@@ -322,9 +267,9 @@ def run_all_tests():
             result.fail("engine_multi_file_hide_extract", str(e))
 
         # ============================================================
-        print("\n[TEST GROUP 8] Engine — Edge Cases")
+        print("\n[TEST GROUP 7] Engine — Edge Cases")
 
-        # Test 18: Empty file as payload
+        # Test 13: Empty file as payload
         try:
             empty_file = Path(tmp) / "empty.txt"
             empty_file.write_bytes(b"")
@@ -339,7 +284,7 @@ def run_all_tests():
         except Exception as e:
             result.fail("engine_empty_payload", str(e))
 
-        # Test 19: Large payload
+        # Test 14: Large payload
         try:
             large_file = Path(tmp) / "large.bin"
             large_data = os.urandom(1024 * 1024)  # 1MB random data
@@ -356,7 +301,7 @@ def run_all_tests():
         except Exception as e:
             result.fail("engine_large_payload_1mb", str(e))
 
-        # Test 20: No-compress option
+        # Test 15: No-compress option
         try:
             output_nocomp = Path(tmp) / "steg_nocomp.pdf"
             extract_nocomp = Path(tmp) / "extracted_nocomp"
@@ -369,6 +314,16 @@ def run_all_tests():
             result.ok("engine_no_compress_option")
         except Exception as e:
             result.fail("engine_no_compress_option", str(e))
+
+        # Test 16: Extract from clean file (no payload)
+        try:
+            try:
+                extract(carrier_path, Path(tmp) / "should_fail_clean")
+                result.fail("engine_extract_clean_file_rejected", "Should have raised PayloadNotFoundError")
+            except PayloadNotFoundError:
+                result.ok("engine_extract_clean_file_rejected")
+        except Exception as e:
+            result.fail("engine_extract_clean_file_rejected", str(e))
 
     finally:
         # Cleanup

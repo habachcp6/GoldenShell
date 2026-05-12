@@ -10,8 +10,6 @@ Phantom hides files inside other files using binary stacking technique with AES-
 |---------|-------------|
 | 🔒 **Hide** | Embed files inside any carrier (PDF, PNG, JPEG, ZIP, MP3, MP4, DOCX...) |
 | 📤 **Extract** | Recover hidden files with integrity verification |
-| 🔍 **Inspect** | Detect if a file contains a hidden payload |
-| ℹ️ **Info** | View payload metadata without extraction |
 | 🔑 **AES-256-GCM** | Military-grade encryption with password protection |
 | 📦 **Multi-file** | Hide multiple files in a single carrier |
 | 🗜️ **Compression** | Automatic zlib compression to minimize size |
@@ -55,18 +53,6 @@ phantom extract output.pdf -o ./extracted/
 phantom extract output.pdf -o ./extracted/ -p "mypassword"
 ```
 
-### Inspect a file
-```bash
-# Quick check if file contains hidden data
-phantom inspect suspicious.pdf
-```
-
-### View payload info
-```bash
-# View metadata without extracting
-phantom info output.pdf
-```
-
 ## 🔧 How It Works
 
 Phantom uses **binary concatenation (stacking)** to append encrypted payload data after the carrier file's valid content. Most file parsers (PDF readers, image viewers, etc.) only read the format-specific portion and ignore trailing data.
@@ -76,6 +62,13 @@ Phantom uses **binary concatenation (stacking)** to append encrypted payload dat
 ```
 
 The payload goes through: **Compression → Encryption → Embedding**.
+
+## 🛡️ Security
+
+- **AES-256-GCM** encryption with authenticated encryption
+- **PBKDF2-HMAC-SHA256** key derivation (600,000 iterations)
+- **SHA-256** integrity verification with constant-time comparison
+- **Path traversal protection** for extracted filenames
 
 ## ⚠️ Disclaimer
 

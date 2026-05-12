@@ -5,6 +5,7 @@ Provides AES-256-GCM encryption/decryption with PBKDF2 key derivation.
 """
 
 import os
+import hmac
 import hashlib
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -12,7 +13,7 @@ from cryptography.hazmat.primitives import hashes
 
 
 # Key derivation parameters
-KDF_ITERATIONS = 100_000
+KDF_ITERATIONS = 600_000  # OWASP 2023 recommendation for PBKDF2-HMAC-SHA256
 KEY_LENGTH = 32  # 256 bits
 SALT_LENGTH = 16
 NONCE_LENGTH = 12  # 96 bits for GCM
@@ -118,6 +119,7 @@ def compute_checksum(data: bytes) -> bytes:
 def verify_checksum(data: bytes, expected: bytes) -> bool:
     """
     Verify SHA-256 checksum matches expected value.
+    Uses constant-time comparison to prevent timing attacks.
 
     Args:
         data: Bytes to verify
@@ -126,4 +128,4 @@ def verify_checksum(data: bytes, expected: bytes) -> bool:
     Returns:
         True if checksum matches
     """
-    return compute_checksum(data) == expected
+    return hmac.compare_digest(compute_checksum(data), expected)
