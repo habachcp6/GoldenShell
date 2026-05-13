@@ -37,7 +37,3 @@ goldenshell = "phantom.cli:app"
 
 [tool.setuptools.packages.find]
 include = ["phantom*"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["."]
