@@ -171,12 +171,6 @@ Extraction reverses the pipeline:
 - **SHA-256** integrity verification with constant-time comparison
 - **Path traversal protection** for extracted filenames
 
-## Running Tests
-
-```bash
-python tests/test_full_suite.py
-```
-
 ## Disclaimer
 
 This tool is for **educational and authorized security research** purposes only. Do not use for illegal activities.
