@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Copy project files
 COPY pyproject.toml .
-COPY phantom/ phantom/
+COPY goldenshell/ goldenshell/
 
 # Install goldenshell
 RUN pip install --no-cache-dir .

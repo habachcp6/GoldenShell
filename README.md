@@ -37,8 +37,8 @@ After activating the virtual environment, the `goldenshell` command will be avai
 ### Alternative (without venv)
 ```bash
 pip install .
-# Use python -m phantom if goldenshell is not in PATH:
-python -m phantom --help
+# Use python -m goldenshell if goldenshell is not in PATH:
+python -m goldenshell --help
 ```
 
 ### Docker
@@ -70,7 +70,7 @@ goldenshell extract output.pdf -o ./extracted/
 goldenshell extract output.pdf -o ./extracted/ -p "mypassword"
 ```
 
-> **Tip**: If `goldenshell` is not found, use `python -m phantom` instead.
+> **Tip**: If `goldenshell` is not found, use `python -m goldenshell` instead.
 
 ## How It Works
 

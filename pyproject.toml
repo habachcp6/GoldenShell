@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.scripts]
-goldenshell = "phantom.cli:app"
+goldenshell = "goldenshell.cli:app"
 
 [tool.setuptools.packages.find]
-include = ["phantom*"]
+include = ["goldenshell*"]
