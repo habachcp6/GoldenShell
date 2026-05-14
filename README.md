@@ -16,36 +16,34 @@ GoldenShell hides files inside other files using binary stacking technique with 
 | **Integrity** | SHA-256 checksum verification |
 | **Docker** | Run anywhere with Docker |
 
-## Installation
+## Quick Start
 
-> **Requires**: Python 3.10+
+> **Requires**: Python 3.10+ | Git
 
-### pip (Recommended — use a virtual environment)
 ```bash
 git clone https://github.com/habachcp6/GoldenShell.git
 cd GoldenShell
-python -m venv venv
-# Windows:
-venv\Scripts\activate
-# Linux/macOS:
-# source venv/bin/activate
-pip install .
 ```
 
-After activating the virtual environment, the `goldenshell` command will be available directly.
-
-### Alternative (without venv)
+**Linux / macOS:**
 ```bash
-pip install .
-# Use python -m goldenshell if goldenshell is not in PATH:
-python -m goldenshell --help
+bash install.sh
+source venv/bin/activate
 ```
 
-### Docker
+**Windows (CMD):**
+```cmd
+install.bat
+venv\Scripts\activate
+```
+
+**Docker:**
 ```bash
 docker build -t goldenshell .
-docker run -v $(pwd):/workspace goldenshell hide carrier.pdf secret.txt -o output.pdf
+docker run -v $(pwd):/workspace goldenshell --help
 ```
+
+That's it! Run `goldenshell --help` to get started.
 
 ## Usage
 
@@ -70,7 +68,21 @@ goldenshell extract output.pdf -o ./extracted/
 goldenshell extract output.pdf -o ./extracted/ -p "mypassword"
 ```
 
-> **Tip**: If `goldenshell` is not found, use `python -m goldenshell` instead.
+> **Tip**: If `goldenshell` is not found, use `python -m goldenshell` (or `python3 -m goldenshell` on Linux) instead.
+
+## Manual Installation
+
+If you prefer not to use the install scripts:
+
+```bash
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate   # Linux/macOS
+# venv\Scripts\activate    # Windows
+
+# Install
+pip install .
+```
 
 ## How It Works
 
