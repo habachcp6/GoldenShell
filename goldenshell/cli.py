@@ -1,7 +1,7 @@
 """
-GoldenShell CLI — Giấu file bên trong file khác, có hỗ trợ mã hóa.
+GoldenShell CLI - Giau file ben trong file khac, co ho tro ma hoa.
 
-Cú pháp:
+Cu phap:
     goldenshell hide <hidden_file...> -c <carrier> [-o output] [-p password]
     goldenshell extract <file> -o <output_dir> [-p password]
 """
@@ -15,7 +15,6 @@ from rich.console import Console
 from rich.table import Table
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.panel import Panel
-from rich import print as rprint
 
 from .banner import BANNER, BANNER_SMALL
 from .core.engine import (
@@ -28,29 +27,10 @@ from .core.engine import (
 )
 
 console = Console()
-app = typer.Typer(
-    name="goldenshell",
-    help=(
-        "🐚 [bold cyan]GoldenShell[/bold cyan] — Công cụ [bold]steganography[/bold] giấu file bên trong file khác, có mã hóa AES-256-GCM.\n\n"
-        "[bold yellow]Cú pháp chung:[/bold yellow]\n"
-        "  goldenshell [bold]hide[/bold]    [dim]<hidden_file...>[/dim] [bold]-c[/bold] [dim]<carrier>[/dim] [[bold]-o[/bold] output] [[bold]-p[/bold] password] [[bold]--no-compress[/bold]]\n"
-        "  goldenshell [bold]extract[/bold] [dim]<file>[/dim]       [[bold]-o[/bold] output_dir] [[bold]-p[/bold] password]\n\n"
-        "[bold yellow]Ví dụ nhanh:[/bold yellow]\n"
-        "  goldenshell hide secret.txt -c report.pdf\n"
-        "  goldenshell hide secret.txt -c report.pdf -p \"pass\"\n"
-        "  goldenshell extract report.pdf -o ./output/ -p \"pass\""
-    ),
-    add_completion=False,
-    no_args_is_help=True,
-    rich_markup_mode="rich",
-    epilog="Dùng [bold]goldenshell hide --help[/bold] hoặc [bold]goldenshell extract --help[/bold] để xem chi tiết từng lệnh.",
-)
 
-
-def show_banner():
-    """Display the ASCII art banner."""
-    console.print(BANNER)
-
+# ---------------------------------------------------------------------------
+# Helper
+# ---------------------------------------------------------------------------
 
 def format_size(size_bytes: int) -> str:
     """Format bytes into human-readable size."""
@@ -61,56 +41,99 @@ def format_size(size_bytes: int) -> str:
     return f"{size_bytes:.1f} TB"
 
 
+# ---------------------------------------------------------------------------
+# App definition
+# ---------------------------------------------------------------------------
+
+app = typer.Typer(
+    name="goldenshell",
+    help=(
+        "[bold cyan]GoldenShell[/bold cyan] — Cong cu steganography giau file ben trong file khac, co ma hoa AES-256-GCM.\n\n"
+        "[bold yellow]Cu phap:[/bold yellow]\n"
+        "  goldenshell [bold]hide[/bold]    [dim]<hidden_file...>[/dim] [bold]-c[/bold] [dim]<carrier>[/dim] [[bold]-o[/bold] output] [[bold]-p[/bold] password] [[bold]--no-compress[/bold]]\n"
+        "  goldenshell [bold]extract[/bold] [dim]<file>[/dim]           [[bold]-o[/bold] output_dir] [[bold]-p[/bold] password]\n\n"
+        "[bold yellow]Vi du nhanh:[/bold yellow]\n"
+        "  goldenshell hide secret.txt -c report.pdf\n"
+        "  goldenshell hide secret.txt -c report.pdf -p \"pass\"\n"
+        "  goldenshell extract report.pdf -o ./output/ -p \"pass\"\n\n"
+        "[bold yellow]Cac tuy chon pho bien:[/bold yellow]\n\n"
+        "  [bold]-c, --carrier[/bold]      FILE    File carrier chua hidden file ben trong\n"
+        "  [bold]-o, --output[/bold]       PATH    File/thu muc dau ra\n"
+        "  [bold]-p, --password[/bold]     TEXT    Mat khau ma hoa / giai ma (AES-256-GCM)\n"
+        "  [bold]--no-compress[/bold]              Tat nen (khi hidden file da nen san)\n\n"
+        "Dung [bold]goldenshell hide --help[/bold] hoac [bold]goldenshell extract --help[/bold] de xem day du."
+    ),
+    add_completion=False,
+    no_args_is_help=True,
+    rich_markup_mode="rich",
+)
+
+
 @app.callback(invoke_without_command=True)
 def main(ctx: typer.Context):
-    """🐚 GoldenShell - Steganography & Polyglot CLI Tool"""
+    """GoldenShell - Steganography CLI Tool"""
     if ctx.invoked_subcommand is None:
         show_banner()
 
 
-@app.command(
-    epilog=(
-        "[bold yellow]Ví dụ:[/bold yellow]\n\n"
-        "  [dim]# Giấu 1 file, output = tên carrier (report.pdf)[/dim]\n"
-        "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf\n\n"
-        "  [dim]# Giấu 1 file với mã hóa AES-256-GCM[/dim]\n"
-        "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-p[/bold] \"pass\"\n\n"
-        "  [dim]# Giấu 1 file, đặt tên output thủ công[/dim]\n"
-        "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-o[/bold] output.pdf [bold]-p[/bold] \"pass\"\n\n"
-        "  [dim]# Giấu nhiều file cùng lúc[/dim]\n"
-        "  goldenshell hide file1.txt file2.zip photo.jpg [bold]-c[/bold] cover.png [bold]-p[/bold] \"pass\"\n\n"
-        "  [dim]# Tắt nén (khi hidden file là ZIP/MP4 đã nén sẵn)[/dim]\n"
-        "  goldenshell hide archive.zip [bold]-c[/bold] cover.png [bold]--no-compress[/bold]\n\n"
-        "  [dim]# Dùng đường dẫn tuyệt đối[/dim]\n"
-        "  goldenshell hide /mnt/data/secret.zip [bold]-c[/bold] /home/user/report.pdf"
-    )
+def show_banner():
+    """Display the ASCII art banner."""
+    console.print(BANNER)
+
+
+# ---------------------------------------------------------------------------
+# hide command
+# ---------------------------------------------------------------------------
+
+HIDE_EPILOG = (
+    "[bold yellow]Bang tuy chon:[/bold yellow]\n\n"
+    "  [bold]-c, --carrier[/bold]    FILE   [required] File carrier (PDF, PNG, JPEG, ZIP, MP3...)\n"
+    "  [bold]-o, --output[/bold]     FILE   Ten file output. Mac dinh: giu nguyen ten carrier\n"
+    "  [bold]-p, --password[/bold]   TEXT   Mat khau ma hoa AES-256-GCM. Bo qua neu khong can\n"
+    "  [bold]--no-compress[/bold]           Tat nen. Dung khi hidden file da nen san (ZIP, MP4...)\n\n"
+    "[bold yellow]Vi du:[/bold yellow]\n\n"
+    "  # Giau 1 file, output = ten carrier\n"
+    "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf\n\n"
+    "  # Giau 1 file co ma hoa AES-256-GCM\n"
+    "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-p[/bold] \"pass\"\n\n"
+    "  # Giau 1 file, dat ten output thu cong\n"
+    "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-o[/bold] output.pdf [bold]-p[/bold] \"pass\"\n\n"
+    "  # Giau nhieu file cung luc\n"
+    "  goldenshell hide file1.txt file2.zip photo.jpg [bold]-c[/bold] cover.png [bold]-p[/bold] \"pass\"\n\n"
+    "  # Tat nen khi hidden file la ZIP/MP4 da nen san\n"
+    "  goldenshell hide archive.zip [bold]-c[/bold] cover.png [bold]--no-compress[/bold]\n\n"
+    "  # Dung duong dan tuyet doi\n"
+    "  goldenshell hide /mnt/data/secret.zip [bold]-c[/bold] /home/user/report.pdf"
 )
+
+
+@app.command(epilog=HIDE_EPILOG)
 def hide(
     payloads: List[str] = typer.Argument(
-        ..., help="[bold]Hidden file(s) — file cần giấu[/bold]. Có thể truyền nhiều file cách nhau bằng dấu cách."
+        ..., help="Hidden file(s) can giau. Co the truyen nhieu file cach nhau bang dau cach."
     ),
     carrier: str = typer.Option(
         ..., "--carrier", "-c",
-        help="[bold]File carrier[/bold] — file chứa hidden file bên trong (PDF, PNG, JPEG, ZIP, MP3,...). File này vẫn mở bình thường."
+        help="File carrier — chua hidden file ben trong (PDF, PNG, JPEG, ZIP, MP3...). File nay van mo binh thuong."
     ),
     output: Optional[str] = typer.Option(
         None, "--output", "-o",
-        help="[bold]File output[/bold] — tên file kết quả. [dim]Mặc định: giữ nguyên tên carrier, lưu vào thư mục hiện tại.[/dim]"
+        help="Ten file output. Mac dinh: giu nguyen ten carrier, luu vao thu muc hien tai."
     ),
     password: Optional[str] = typer.Option(
         None, "--password", "-p",
-        help="[bold]Mật khẩu mã hóa[/bold] — dùng AES-256-GCM. [dim]Bỏ qua nếu không cần mã hóa.[/dim]"
+        help="Mat khau ma hoa AES-256-GCM. Bo qua neu khong can ma hoa."
     ),
     no_compress: bool = typer.Option(
         False, "--no-compress",
-        help="[bold]Tắt nén[/bold] — dùng khi hidden file đã nén sẵn (ZIP, MP4, RAR,...) để tránh tăng kích thước."
+        help="Tat nen — dung khi hidden file da nen san (ZIP, MP4, RAR...) de tranh tang kich thuoc."
     ),
 ):
     """
-    🔒 Giấu một hoặc nhiều hidden file bên trong file carrier.
+    Giau mot hoac nhieu hidden file ben trong file carrier.
 
-    File carrier [bold]vẫn mở và hoạt động bình thường[/bold] sau khi nhúng hidden file.
-    Hidden file được nén (zlib) và tùy chọn mã hóa (AES-256-GCM) trước khi nhúng.
+    File carrier van mo va hoat dong binh thuong sau khi nhung hidden file.
+    Hidden file duoc nen (zlib) va tuy chon ma hoa (AES-256-GCM) truoc khi nhung.
     """
     console.print(BANNER_SMALL)
     console.print()
@@ -126,25 +149,29 @@ def hide(
 
     # Validate
     if not payload_paths:
-        console.print("[red]❌ Cần ít nhất một hidden file.[/red]")
+        console.print("[red]Error: Can it nhat mot hidden file.[/red]")
         raise typer.Exit(1)
 
     if not carrier_path.exists():
-        console.print(f"[red]❌ Không tìm thấy file carrier:[/red] {carrier_path}")
+        console.print(f"[red]Error: Khong tim thay file carrier:[/red] {carrier_path}")
         raise typer.Exit(1)
 
     for p in payload_paths:
         if not p.exists():
-            console.print(f"[red]❌ Không tìm thấy hidden file:[/red] {p}")
+            console.print(f"[red]Error: Khong tim thay hidden file:[/red] {p}")
             raise typer.Exit(1)
 
-    # Show operation summary
-    console.print(f"[bold]📦 Carrier:[/bold] {carrier_path.name} ({format_size(carrier_path.stat().st_size)})")
+    # Show operation summary table
+    summary = Table(show_header=False, box=None, padding=(0, 2))
+    summary.add_column("Label", style="bold")
+    summary.add_column("Value")
+    summary.add_row("Carrier   :", f"{carrier_path.name}  ({format_size(carrier_path.stat().st_size)})")
     for p in payload_paths:
-        console.print(f"[bold]🔐 Hidden file:[/bold] {p.name} ({format_size(p.stat().st_size)})")
-    console.print(f"[bold]📝 Output:[/bold]  {output_path}")
-    if password:
-        console.print("[bold]🔑 Encryption:[/bold] [green]AES-256-GCM[/green]")
+        summary.add_row("Hidden file:", f"{p.name}  ({format_size(p.stat().st_size)})")
+    summary.add_row("Output    :", str(output_path))
+    summary.add_row("Encryption:", "AES-256-GCM" if password else "None")
+    summary.add_row("Compress  :", "No" if no_compress else "Yes (zlib)")
+    console.print(summary)
     console.print()
 
     try:
@@ -154,7 +181,7 @@ def hide(
             BarColumn(),
             console=console,
         ) as progress:
-            task = progress.add_task("[cyan]Hiding hidden file...", total=100)
+            task = progress.add_task("[cyan]Embedding hidden file...", total=100)
 
             progress.update(task, advance=30, description="[cyan]Reading files...")
             result = engine_hide(
@@ -164,60 +191,68 @@ def hide(
                 password=password,
                 compress_payload=not no_compress,
             )
-            progress.update(task, advance=70, description="[green]Complete!")
+            progress.update(task, advance=70, description="[green]Done!")
 
         # Success summary
         console.print()
-        panel_content = (
-            f"[green]✅ Hidden file embedded successfully![/green]\n\n"
-            f"  Output:      {output_path}\n"
-            f"  Output size: {format_size(output_path.stat().st_size)}\n"
-            f"  Encrypted:   {'✅ Yes' if result.is_encrypted else '❌ No'}\n"
-            f"  Compressed:  {'✅ Yes' if result.is_compressed else '❌ No'}\n"
-            f"  Files:       {result.file_count}\n"
-            f"  Checksum:    {result.checksum_hex[:16]}..."
-        )
-        console.print(Panel(panel_content, title="[bold green]Success[/bold green]", border_style="green"))
+        result_table = Table(show_header=False, box=None, padding=(0, 2))
+        result_table.add_column("Label", style="bold green")
+        result_table.add_column("Value")
+        result_table.add_row("Output     :", str(output_path))
+        result_table.add_row("Output size:", format_size(output_path.stat().st_size))
+        result_table.add_row("Encrypted  :", "Yes" if result.is_encrypted else "No")
+        result_table.add_row("Compressed :", "Yes" if result.is_compressed else "No")
+        result_table.add_row("Files      :", str(result.file_count))
+        result_table.add_row("Checksum   :", f"{result.checksum_hex[:16]}...")
+        console.print(Panel(result_table, title="[bold green]Hidden file embedded successfully[/bold green]", border_style="green"))
 
     except GoldenShellError as e:
-        console.print(f"[red]❌ Error:[/red] {e}")
+        console.print(f"[red]Error:[/red] {e}")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ Unexpected error:[/red] {e}")
+        console.print(f"[red]Unexpected error:[/red] {e}")
         raise typer.Exit(1)
 
 
-@app.command(
-    epilog=(
-        "[bold yellow]Ví dụ:[/bold yellow]\n\n"
-        "  [dim]# Trích xuất file không mã hóa vào thư mục ./output/[/dim]\n"
-        "  goldenshell extract report.pdf [bold]-o[/bold] ./output/\n\n"
-        "  [dim]# Trích xuất file có mã hóa, cung cấp mật khẩu[/dim]\n"
-        "  goldenshell extract report.pdf [bold]-o[/bold] ./output/ [bold]-p[/bold] \"pass\"\n\n"
-        "  [dim]# Dùng thư mục mặc định (./extracted/)[/dim]\n"
-        "  goldenshell extract report.pdf\n\n"
-        "  [dim]# Đường dẫn tuyệt đối[/dim]\n"
-        "  goldenshell extract /home/user/report.pdf [bold]-o[/bold] /tmp/result/ [bold]-p[/bold] \"pass\""
-    )
+# ---------------------------------------------------------------------------
+# extract command
+# ---------------------------------------------------------------------------
+
+EXTRACT_EPILOG = (
+    "[bold yellow]Bang tuy chon:[/bold yellow]\n\n"
+    "  [bold]-o, --output[/bold]     DIR    Thu muc luu file duoc trich xuat. Mac dinh: ./extracted/\n"
+    "  [bold]-p, --password[/bold]   TEXT   Mat khau giai ma. Bat buoc neu file duoc ma hoa\n\n"
+    "[bold yellow]Vi du:[/bold yellow]\n\n"
+    "  # Trich xuat file khong ma hoa vao thu muc ./output/\n"
+    "  goldenshell extract report.pdf [bold]-o[/bold] ./output/\n\n"
+    "  # Trich xuat file co ma hoa, cung cap mat khau\n"
+    "  goldenshell extract report.pdf [bold]-o[/bold] ./output/ [bold]-p[/bold] \"pass\"\n\n"
+    "  # Dung thu muc mac dinh (./extracted/)\n"
+    "  goldenshell extract report.pdf\n\n"
+    "  # Duong dan tuyet doi\n"
+    "  goldenshell extract /home/user/report.pdf [bold]-o[/bold] /tmp/result/ [bold]-p[/bold] \"pass\""
 )
+
+
+@app.command(epilog=EXTRACT_EPILOG)
 def extract(
     file: str = typer.Argument(
-        ..., help="[bold]File nguồn[/bold] — file chứa dữ liệu ẩn (đã được tạo bởi 'goldenshell hide')."
+        ..., help="File nguon — file chua du lieu an (da duoc tao boi 'goldenshell hide')."
     ),
     output: str = typer.Option(
         "./extracted", "--output", "-o",
-        help="[bold]Thư mục đầu ra[/bold] — nơi lưu các file được trích xuất. [dim]Mặc định: ./extracted/[/dim]"
+        help="Thu muc dau ra — noi luu cac file duoc trich xuat. Mac dinh: ./extracted/"
     ),
     password: Optional[str] = typer.Option(
         None, "--password", "-p",
-        help="[bold]Mật khẩu giải mã[/bold] — bắt buộc nếu file được mã hóa bằng AES-256-GCM. [dim]Bỏ qua nếu không có mã hóa.[/dim]"
+        help="Mat khau giai ma — bat buoc neu file duoc ma hoa bang AES-256-GCM. Bo qua neu khong co ma hoa."
     ),
 ):
     """
-    📤 Trích xuất file ẩn từ file steganography.
+    Trich xuat hidden file tu file steganography.
 
-    Khôi phục các file đã nhúng bằng [bold]goldenshell hide[/bold].
-    Nếu file có mã hóa, [bold]phải cung cấp đúng mật khẩu[/bold] — sai password sẽ báo lỗi.
+    Khoi phuc cac file da nhung bang goldenshell hide.
+    Neu file co ma hoa, phai cung cap dung mat khau — sai password se bao loi.
     """
     console.print(BANNER_SMALL)
     console.print()
@@ -226,11 +261,16 @@ def extract(
     output_dir = Path(output)
 
     if not file_path.exists():
-        console.print(f"[red]❌ Không tìm thấy file:[/red] {file_path}")
+        console.print(f"[red]Error: Khong tim thay file:[/red] {file_path}")
         raise typer.Exit(1)
 
-    console.print(f"[bold]📂 Input:[/bold]  {file_path.name} ({format_size(file_path.stat().st_size)})")
-    console.print(f"[bold]📝 Output:[/bold] {output_dir}/")
+    # Show summary
+    summary = Table(show_header=False, box=None, padding=(0, 2))
+    summary.add_column("Label", style="bold")
+    summary.add_column("Value")
+    summary.add_row("Input :", f"{file_path.name}  ({format_size(file_path.stat().st_size)})")
+    summary.add_row("Output:", str(output_dir) + "/")
+    console.print(summary)
     console.print()
 
     try:
@@ -248,12 +288,12 @@ def extract(
                 output_dir=output_dir,
                 password=password,
             )
-            progress.update(task, advance=70, description="[green]Complete!")
+            progress.update(task, advance=70, description="[green]Done!")
 
         # Success summary
         console.print()
 
-        table = Table(title="📦 Extracted Files", border_style="green")
+        table = Table(title="Extracted Files", border_style="green")
         table.add_column("File", style="cyan")
         table.add_column("Size", style="green", justify="right")
 
@@ -261,19 +301,19 @@ def extract(
             table.add_row(fp.name, format_size(fp.stat().st_size))
 
         console.print(table)
-        console.print(f"\n[green]✅ {len(extracted_files)} file(s) extracted to:[/green] {output_dir}/")
+        console.print(f"\n[green]{len(extracted_files)} file(s) extracted to:[/green] {output_dir}/")
 
     except PayloadNotFoundError as e:
-        console.print(f"[yellow]⚠️ {e}[/yellow]")
+        console.print(f"[yellow]Warning: {e}[/yellow]")
         raise typer.Exit(1)
     except DecryptionError as e:
-        console.print(f"[red]🔐 {e}[/red]")
+        console.print(f"[red]Decryption error: {e}[/red]")
         raise typer.Exit(1)
     except IntegrityError as e:
-        console.print(f"[red]⚠️ {e}[/red]")
+        console.print(f"[red]Integrity error: {e}[/red]")
         raise typer.Exit(1)
     except Exception as e:
-        console.print(f"[red]❌ Unexpected error:[/red] {e}")
+        console.print(f"[red]Unexpected error: {e}[/red]")
         raise typer.Exit(1)
 
 
