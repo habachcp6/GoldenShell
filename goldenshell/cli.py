@@ -91,6 +91,11 @@ def hide(
     output_path = Path(output)
 
     # Validate
+    # BUG-008 FIX: Guard against empty payload list (Typer may allow zero positional args)
+    if not payload_paths:
+        console.print("[red]❌ At least one payload file must be specified.[/red]")
+        raise typer.Exit(1)
+
     if not carrier_path.exists():
         console.print(f"[red]❌ Carrier file not found:[/red] {carrier_path}")
         raise typer.Exit(1)

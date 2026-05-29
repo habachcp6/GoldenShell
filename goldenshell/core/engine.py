@@ -25,8 +25,9 @@ from .crypto import (
     compute_checksum,
     verify_checksum,
 )
-from .compressor import compress, decompress, is_worth_compressing
-from .packer import PackedFile, pack_files, unpack_files, pack_from_paths
+from cryptography.exceptions import InvalidTag
+from .compressor import compress, decompress, is_worth_compressing, CompressionError
+from .packer import PackedFile, pack_files, unpack_files, pack_from_paths, PackerError
 
 
 class GoldenShellError(Exception):
@@ -97,6 +98,10 @@ def hide(
     carrier_path = Path(carrier_path)
     output_path = Path(output_path)
     payload_paths = [Path(p) for p in payload_paths]
+
+    # BUG-001 FIX: Guard against empty payload list
+    if not payload_paths:
+        raise GoldenShellError("At least one payload file must be specified.")
 
     # Validate inputs
     if not carrier_path.exists():
@@ -227,10 +232,18 @@ def extract(
     # Extract raw payload (after header, before auth_tag/footer)
     payload_start = magic_pos + header.packed_size()
 
+    # Validate payload_size to prevent out-of-bounds reads
+    if header.payload_size < 0 or payload_start + header.payload_size > len(file_data):
+        raise PayloadNotFoundError(
+            f"Invalid payload_size ({header.payload_size}) in header — possible data corruption or tampering."
+        )
+
     if header.is_encrypted:
         payload_end = payload_start + header.payload_size
         raw_payload = file_data[payload_start:payload_end]
         auth_tag = file_data[payload_end : payload_end + AUTH_TAG_SIZE]
+        if len(auth_tag) != AUTH_TAG_SIZE:
+            raise PayloadNotFoundError("Truncated auth tag — data is corrupted or tampered.")
     else:
         payload_end = payload_start + header.payload_size
         raw_payload = file_data[payload_start:payload_end]
@@ -241,8 +254,6 @@ def extract(
         if not password:
             raise DecryptionError("File is encrypted. Password required.")
         try:
-            from cryptography.exceptions import InvalidTag
-
             raw_payload = decrypt_payload(
                 raw_payload, header.nonce, header.salt, auth_tag, password
             )
@@ -253,9 +264,13 @@ def extract(
 
     # Decompress if needed
     if header.is_compressed:
-        raw_payload = decompress(raw_payload)
+        # BUG-003 FIX: CompressionError is now raised by decompress() instead of raw zlib.error
+        try:
+            raw_payload = decompress(raw_payload)
+        except CompressionError as exc:
+            raise IntegrityError(f"Payload decompression failed: {exc}") from exc
 
-    # Verify checksum
+    # Verify checksum — performed on the final plaintext (post-decrypt, post-decompress)
     if not verify_checksum(raw_payload, header.checksum):
         raise IntegrityError(
             "Checksum mismatch! Extracted data may be corrupted or tampered."
@@ -266,13 +281,36 @@ def extract(
     extracted_paths = []
 
     if header.is_multi_file:
-        packed_files = unpack_files(raw_payload)
+        # BUG-004/BUG-010 FIX: PackerError propagated as IntegrityError
+        try:
+            packed_files = unpack_files(raw_payload)
+        except PackerError as exc:
+            raise IntegrityError(f"Failed to unpack multi-file archive: {exc}") from exc
+        seen_names: dict[str, int] = {}
         for pf in packed_files:
-            out_path = output_dir / pf.filename
+            # Guard against path traversal: strip all directory components
+            safe_name = Path(pf.filename).name
+            if not safe_name or safe_name in (".", ".."):
+                safe_name = "extracted_file"
+            # BUG-005 FIX: Handle duplicate filenames by appending a counter
+            base_name = safe_name
+            if base_name in seen_names:
+                seen_names[base_name] += 1
+                stem = Path(base_name).stem
+                suffix = Path(base_name).suffix
+                deduped_name = f"{stem}_{seen_names[base_name]}{suffix}"
+            else:
+                seen_names[base_name] = 0
+                deduped_name = base_name
+            out_path = output_dir / deduped_name
             out_path.write_bytes(pf.data)
             extracted_paths.append(out_path)
     else:
-        out_path = output_dir / header.filename
+        # Guard against path traversal: strip leading slashes and disallow ".." segments
+        safe_filename = Path(header.filename).name
+        if not safe_filename or safe_filename in (".", ".."):
+            safe_filename = "extracted_payload"
+        out_path = output_dir / safe_filename
         out_path.write_bytes(raw_payload)
         extracted_paths.append(out_path)
 

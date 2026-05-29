@@ -94,12 +94,23 @@ class StegHeader:
     @classmethod
     def unpack(cls, data: bytes) -> "StegHeader":
         """Deserialize header from bytes."""
+        if len(data) < HEADER_FIXED_SIZE:
+            raise ValueError(
+                f"Data too short to contain fixed header: got {len(data)}, need {HEADER_FIXED_SIZE}"
+            )
+
         # Parse fixed part
         version, flags, nonce, salt, fname_len = struct.unpack(
             HEADER_FIXED_FORMAT, data[:HEADER_FIXED_SIZE]
         )
 
         offset = HEADER_FIXED_SIZE
+
+        # Validate fname_len before slicing
+        if offset + fname_len + PAYLOAD_META_SIZE > len(data):
+            raise ValueError(
+                f"Invalid fname_len ({fname_len}): header data truncated or corrupted"
+            )
 
         # Parse filename
         filename = data[offset : offset + fname_len].decode("utf-8")

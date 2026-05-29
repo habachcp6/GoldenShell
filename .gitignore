@@ -15,3 +15,17 @@ env/
 Thumbs.db
 .env
 .env.*
+
+# PyInstaller
+*.spec
+
+# Test output directories
+test_output*/
+extracted*/
+
+# Coverage reports
+.coverage
+htmlcov/
+
+# Log files
+*.log

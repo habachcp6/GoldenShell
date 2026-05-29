@@ -17,6 +17,11 @@ from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
 
+class PackerError(Exception):
+    """Raised when pack/unpack operations encounter malformed data."""
+    pass
+
+
 @dataclass
 class PackedFile:
     """Represents a file entry in a packed payload."""
@@ -96,42 +101,59 @@ def unpack_files(data: bytes) -> list[PackedFile]:
     Unpack binary blob back into individual files.
 
     Args:
-        data: Packed binary data
+        data: Packed binary data produced by pack_files()
 
     Returns:
         List of PackedFile objects
 
     Raises:
-        struct.error: If data format is invalid
-        ValueError: If any filename is invalid after sanitization
+        PackerError: If data is truncated, malformed, or contains invalid entries.
     """
     offset = 0
     files = []
-
-    # Read file count
-    (file_count,) = struct.unpack(
-        FILE_COUNT_FORMAT, data[offset : offset + struct.calcsize(FILE_COUNT_FORMAT)]
-    )
-    offset += struct.calcsize(FILE_COUNT_FORMAT)
-
+    count_size = struct.calcsize(FILE_COUNT_FORMAT)
     entry_header_size = struct.calcsize(FILE_ENTRY_HEADER_FORMAT)
 
-    for _ in range(file_count):
-        # Read entry header
-        fname_len, data_len = struct.unpack(
-            FILE_ENTRY_HEADER_FORMAT, data[offset : offset + entry_header_size]
-        )
+    # BUG-004 FIX: Catch struct.error for truncated header
+    try:
+        (file_count,) = struct.unpack(FILE_COUNT_FORMAT, data[offset : offset + count_size])
+    except struct.error as exc:
+        raise PackerError(f"Truncated pack data: cannot read file count — {exc}") from exc
+    offset += count_size
+
+    for i in range(file_count):
+        # BUG-004 FIX: Catch truncated entry header
+        try:
+            fname_len, data_len = struct.unpack(
+                FILE_ENTRY_HEADER_FORMAT, data[offset : offset + entry_header_size]
+            )
+        except struct.error as exc:
+            raise PackerError(
+                f"Truncated pack data at entry {i}: cannot read entry header — {exc}"
+            ) from exc
         offset += entry_header_size
 
-        # Read and sanitize filename (prevent path traversal)
-        raw_filename = data[offset : offset + fname_len].decode("utf-8")
+        # BUG-010 FIX: Validate that enough bytes remain for filename
+        if offset + fname_len > len(data):
+            raise PackerError(
+                f"Truncated pack data at entry {i}: filename claims {fname_len} bytes "
+                f"but only {len(data) - offset} bytes remain."
+            )
+        try:
+            raw_filename = data[offset : offset + fname_len].decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise PackerError(f"Invalid UTF-8 filename at entry {i}: {exc}") from exc
         filename = _sanitize_filename(raw_filename)
         offset += fname_len
 
-        # Read file data
+        # BUG-010 FIX: Validate that enough bytes remain for file data
+        if offset + data_len > len(data):
+            raise PackerError(
+                f"Truncated pack data at entry {i} ('{filename}'): data claims {data_len} bytes "
+                f"but only {len(data) - offset} bytes remain."
+            )
         file_data = data[offset : offset + data_len]
         offset += data_len
-
         files.append(PackedFile(filename=filename, data=file_data))
 
     return files
