@@ -24,13 +24,18 @@ cd GoldenShell
 pip install .
 ```
 
-Sau khi cài xong, dùng ngay:
+Sau khi cài xong:
 
 ```bash
+# Nếu lệnh goldenshell hoạt động:
 goldenshell --help
+
+# Nếu không tìm thấy lệnh goldenshell (thường gặp trên Windows):
+python -m goldenshell --help
 ```
 
-> Nếu không tìm thấy lệnh `goldenshell`, dùng `python -m goldenshell` thay thế.
+> **Windows**: Nếu gặp lỗi `'goldenshell' is not recognized`, thêm thư mục Scripts của Python vào PATH hoặc dùng `python -m goldenshell` thay thế.
+
 
 
 ## Sử dụng

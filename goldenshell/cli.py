@@ -112,7 +112,7 @@ def hide(
 
     for p in payload_paths:
         if not p.exists():
-            console.print(f"[red]❌ Payload file not found:[/red] {p}")
+            console.print(f"[red]❌ Không tìm thấy file payload:[/red] {p}")
             raise typer.Exit(1)
 
     # Show operation summary
