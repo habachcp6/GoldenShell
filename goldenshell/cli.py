@@ -60,20 +60,20 @@ def main(ctx: typer.Context):
 
 @app.command()
 def hide(
-    carrier: str = typer.Argument(
-        ..., help="Path to the carrier file (PDF, PNG, JPEG, etc.)"
-    ),
     payloads: List[str] = typer.Argument(
-        ..., help="Path(s) to file(s) to hide inside the carrier"
+        ..., help="File(s) cần giấu (payload). Có thể truyền nhiều file."
     ),
-    output: str = typer.Option(
-        ..., "--output", "-o", help="Output file path"
+    carrier: str = typer.Option(
+        ..., "--carrier", "-c", help="File carrier (PDF, PNG, JPEG,...)"
+    ),
+    output: Optional[str] = typer.Option(
+        None, "--output", "-o", help="File output (mặc định: tự tạo tên từ carrier)"
     ),
     password: Optional[str] = typer.Option(
-        None, "--password", "-p", help="Password for AES-256-GCM encryption"
+        None, "--password", "-p", help="Mật khẩu mã hóa AES-256-GCM"
     ),
     no_compress: bool = typer.Option(
-        False, "--no-compress", help="Disable payload compression"
+        False, "--no-compress", help="Tắt nén (dùng khi payload đã nén sẵn)"
     ),
 ):
     """
@@ -82,28 +82,32 @@ def hide(
     File carrier vẫn mở bình thường sau khi nhúng payload. Dùng -p để mã hóa bằng AES-256-GCM.
 
     Cú pháp:
-      goldenshell hide <carrier> <payload...> -o <output> [-p password]
+      goldenshell hide <payload...> -c <carrier> [-o output] [-p password]
 
     Ví dụ:
-      goldenshell hide report.pdf secret.exe -o output.pdf
-      goldenshell hide report.pdf secret.exe -o output.pdf -p "mypassword"
-      goldenshell hide image.png file1.txt file2.zip -o steg.png -p "pass"
+      goldenshell hide secret.txt -c report.pdf
+      goldenshell hide secret.txt -c report.pdf -p "matkhau"
+      goldenshell hide file1.txt file2.zip -c anh.png -p "matkhau"
     """
     console.print(BANNER_SMALL)
     console.print()
 
     carrier_path = Path(carrier)
     payload_paths = [Path(p) for p in payloads]
-    output_path = Path(output)
+
+    # Auto-generate output name if not specified
+    if output:
+        output_path = Path(output)
+    else:
+        output_path = carrier_path.parent / f"{carrier_path.stem}_hidden{carrier_path.suffix}"
 
     # Validate
-    # BUG-008 FIX: Guard against empty payload list (Typer may allow zero positional args)
     if not payload_paths:
-        console.print("[red]❌ At least one payload file must be specified.[/red]")
+        console.print("[red]❌ Cần ít nhất một file payload.[/red]")
         raise typer.Exit(1)
 
     if not carrier_path.exists():
-        console.print(f"[red]❌ Carrier file not found:[/red] {carrier_path}")
+        console.print(f"[red]❌ Không tìm thấy file carrier:[/red] {carrier_path}")
         raise typer.Exit(1)
 
     for p in payload_paths:

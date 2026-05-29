@@ -37,54 +37,54 @@ goldenshell --help
 
 ### Giấu file — Không mã hóa
 
-File output trông y chang file gốc, không cần mật khẩu để mở:
-
 ```bash
-goldenshell hide report.pdf secret.txt -o output.pdf
+goldenshell hide secret.txt -c report.pdf
 ```
+
+Output tự tạo tên: `report_hidden.pdf`
 
 ---
 
 ### Giấu file — Có mã hóa AES-256-GCM
 
-Thêm `-p` để mã hóa payload. Nếu không có đúng mật khẩu, không thể trích xuất:
+```bash
+goldenshell hide secret.txt -c report.pdf -p "matkhau"
+```
+
+---
+
+### Chỉ định tên output thủ công
 
 ```bash
-goldenshell hide report.pdf secret.txt -o output.pdf -p "matkhau"
+goldenshell hide secret.txt -c report.pdf -o output.pdf -p "matkhau"
 ```
 
 ---
 
 ### Giấu nhiều file cùng lúc
 
-Liệt kê nhiều file payload liên tiếp nhau — tất cả sẽ được đóng gói vào một carrier:
-
 ```bash
-goldenshell hide anh.png file1.txt file2.zip file3.docx -o output.png -p "matkhau"
+goldenshell hide file1.txt file2.zip file3.docx -c anh.png -p "matkhau"
 ```
 
 ---
 
 ### Dùng đường dẫn từ thư mục khác
 
-Có thể dán đường dẫn đầy đủ (tuyệt đối) từ bất kỳ thư mục nào trên máy:
-
 ```bash
-# Windows — đường dẫn đầy đủ
-goldenshell hide "C:\Users\user\Documents\report.pdf" "D:\secrets\data.zip" -o "C:\output\output.pdf"
+# Windows
+goldenshell hide "D:\secrets\data.zip" -c "C:\docs\report.pdf" -o "C:\out\output.pdf"
 
-# Linux/macOS — đường dẫn đầy đủ
-goldenshell hide /home/user/docs/report.pdf /mnt/data/secret.zip -o /home/user/output.pdf
+# Linux/macOS
+goldenshell hide /mnt/data/secret.zip -c /home/user/docs/report.pdf
 ```
 
 ---
 
-### Tắt nén (với file đã nén sẵn)
-
-ZIP, MP4, MP3,... đã được nén rồi — thêm `--no-compress` để bỏ qua bước nén:
+### Tắt nén (với file đã nén sẵn như ZIP, MP4)
 
 ```bash
-goldenshell hide anh.png archive.zip -o output.png --no-compress
+goldenshell hide archive.zip -c anh.png --no-compress
 ```
 
 ---
@@ -100,6 +100,7 @@ goldenshell extract output.pdf -o ./ketqua/
 ```bash
 goldenshell extract output.pdf -o ./ketqua/ -p "matkhau"
 ```
+
 
 
 ## Cách hoạt động
