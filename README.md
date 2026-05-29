@@ -48,28 +48,72 @@ goldenshell --help
 
 ## Sử dụng
 
-### Giấu file
+### Giấu file — Không mã hóa
+
+File output trông y chang file gốc, không cần mật khẩu để mở:
 
 ```bash
-# Giấu file không mã hóa
 goldenshell hide report.pdf secret.txt -o output.pdf
-
-# Giấu file có mã hóa AES-256-GCM
-goldenshell hide report.pdf secret.txt -o output.pdf -p "matkhau"
-
-# Giấu nhiều file cùng lúc
-goldenshell hide anh.png file1.txt file2.zip -o output.png -p "matkhau"
 ```
 
-### Trích xuất file
+---
+
+### Giấu file — Có mã hóa AES-256-GCM
+
+Thêm `-p` để mã hóa payload. Nếu không có đúng mật khẩu, không thể trích xuất:
 
 ```bash
-# Trích xuất (không mã hóa)
-goldenshell extract output.pdf -o ./ketqua/
+goldenshell hide report.pdf secret.txt -o output.pdf -p "matkhau"
+```
 
-# Trích xuất (có mã hóa)
+---
+
+### Giấu nhiều file cùng lúc
+
+Liệt kê nhiều file payload liên tiếp nhau — tất cả sẽ được đóng gói vào một carrier:
+
+```bash
+goldenshell hide anh.png file1.txt file2.zip file3.docx -o output.png -p "matkhau"
+```
+
+---
+
+### Dùng đường dẫn từ thư mục khác
+
+Có thể dán đường dẫn đầy đủ (tuyệt đối) từ bất kỳ thư mục nào trên máy:
+
+```bash
+# Windows — đường dẫn đầy đủ
+goldenshell hide "C:\Users\user\Documents\report.pdf" "D:\secrets\data.zip" -o "C:\output\output.pdf"
+
+# Linux/macOS — đường dẫn đầy đủ
+goldenshell hide /home/user/docs/report.pdf /mnt/data/secret.zip -o /home/user/output.pdf
+```
+
+---
+
+### Tắt nén (với file đã nén sẵn)
+
+ZIP, MP4, MP3,... đã được nén rồi — thêm `--no-compress` để bỏ qua bước nén:
+
+```bash
+goldenshell hide anh.png archive.zip -o output.png --no-compress
+```
+
+---
+
+### Trích xuất file — Không mã hóa
+
+```bash
+goldenshell extract output.pdf -o ./ketqua/
+```
+
+### Trích xuất file — Có mã hóa
+
+```bash
 goldenshell extract output.pdf -o ./ketqua/ -p "matkhau"
 ```
+
 
 ## Cách hoạt động
 
