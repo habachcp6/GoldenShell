@@ -20,26 +20,32 @@ GoldenShell hides files inside other files using binary stacking technique with 
 
 > **Requires**: Python 3.10+
 
-### pip (Recommended — use a virtual environment)
+### Linux / macOS
 ```bash
-git clone https://github.com/habachcp6/GoldenShell.git
-cd GoldenShell
-python -m venv venv
-# Windows:
+git clone https://github.com/habachcp6/GoldenShell.git && cd GoldenShell
+bash install.sh
+```
+
+### Windows (CMD / PowerShell)
+```bat
+git clone https://github.com/habachcp6/GoldenShell.git && cd GoldenShell
+install.bat
+```
+
+The install script automatically creates a virtual environment and installs all dependencies.  
+After installation, activate the environment and run:
+
+```bash
+# Linux/macOS
+source venv/bin/activate
+goldenshell --help
+
+# Windows
 venv\Scripts\activate
-# Linux/macOS:
-# source venv/bin/activate
-pip install .
+goldenshell --help
 ```
 
-After activating the virtual environment, the `goldenshell` command will be available directly.
-
-### Alternative (without venv)
-```bash
-pip install .
-# Use python -m goldenshell if goldenshell is not in PATH:
-python -m goldenshell --help
-```
+> **Tip**: If `goldenshell` is not found, use `python -m goldenshell` instead.
 
 ### Docker
 ```bash
