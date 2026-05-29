@@ -1,20 +1,19 @@
-# GoldenShell — Hide Files Inside Other Files
+# GoldenShell — Công cụ Steganography với Mã hóa
 
-> **Steganography & Polyglot CLI Tool** — Cross-platform (Windows, Linux, macOS, Docker)
+> **Steganography CLI Tool** — Cross-platform (Windows, Linux, macOS)
 
-GoldenShell hides files inside other files using binary stacking technique with AES-256-GCM encryption. The carrier file (PDF, PNG, JPEG, etc.) remains fully functional — it opens normally in any viewer — while secretly containing your hidden payload.
+GoldenShell là công cụ steganography có sử dụng thêm mã hóa để tăng tính bảo mật. Công cụ giấu file bên trong file khác (PDF, PNG, JPEG,...) bằng kỹ thuật binary stacking kết hợp AES-256-GCM. File carrier vẫn mở bình thường trên mọi trình xem — trong khi bí mật chứa payload ẩn bên trong.
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| **Hide** | Embed files inside any carrier (PDF, PNG, JPEG, ZIP, MP3, MP4, DOCX...) |
-| **Extract** | Recover hidden files with integrity verification |
-| **AES-256-GCM** | Military-grade encryption with password protection |
-| **Multi-file** | Hide multiple files in a single carrier |
-| **Compression** | Automatic zlib compression to minimize size |
-| **Integrity** | SHA-256 checksum verification |
-| **Docker** | Run anywhere with Docker |
+| Tính năng | Mô tả |
+|-----------|-------|
+| **Hide** | Giấu file bên trong carrier bất kỳ (PDF, PNG, JPEG, ZIP, MP3, MP4, DOCX...) |
+| **Extract** | Trích xuất file ẩn với xác minh tính toàn vẹn |
+| **AES-256-GCM** | Mã hóa cấp cao với bảo vệ bằng mật khẩu |
+| **Multi-file** | Giấu nhiều file trong một carrier |
+| **Compression** | Tự động nén zlib để giảm kích thước |
+| **Integrity** | Xác minh SHA-256 checksum |
 
 ## Installation
 
@@ -47,11 +46,7 @@ goldenshell --help
 
 > **Tip**: If `goldenshell` is not found, use `python -m goldenshell` instead.
 
-### Docker
-```bash
-docker build -t goldenshell .
-docker run -v $(pwd):/workspace goldenshell hide carrier.pdf secret.txt -o output.pdf
-```
+
 
 ## Usage
 

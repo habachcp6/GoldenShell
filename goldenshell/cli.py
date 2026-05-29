@@ -30,7 +30,7 @@ from .core.engine import (
 console = Console()
 app = typer.Typer(
     name="goldenshell",
-    help="🐚 GoldenShell - Hide files inside other files",
+    help="🐚 GoldenShell — Công cụ steganography có sử dụng thêm mã hóa để tăng tính bảo mật",
     add_completion=False,
     no_args_is_help=True,
     rich_markup_mode="rich",
@@ -77,11 +77,17 @@ def hide(
     ),
 ):
     """
-    🔒 Hide file(s) inside a carrier file.
+    🔒 Giấu một hoặc nhiều file bên trong file carrier.
 
-    Examples:
-        goldenshell hide report.pdf secret.exe -o output.pdf -p "mypassword"
-        goldenshell hide image.png file1.txt file2.zip -o steg_image.png
+    File carrier vẫn mở bình thường sau khi nhúng payload. Dùng -p để mã hóa bằng AES-256-GCM.
+
+    Cú pháp:
+      goldenshell hide <carrier> <payload...> -o <output> [-p password]
+
+    Ví dụ:
+      goldenshell hide report.pdf secret.exe -o output.pdf
+      goldenshell hide report.pdf secret.exe -o output.pdf -p "mypassword"
+      goldenshell hide image.png file1.txt file2.zip -o steg.png -p "pass"
     """
     console.print(BANNER_SMALL)
     console.print()
@@ -167,11 +173,16 @@ def extract(
     ),
 ):
     """
-    📤 Extract hidden file(s) from a steganography file.
+    📤 Trích xuất file ẩn từ file steganography.
 
-    Examples:
-        goldenshell extract output.pdf -o ./extracted/ -p "mypassword"
-        goldenshell extract steg_image.png -o ./out/
+    Khôi phục các file đã được nhúng bằng 'goldenshell hide'. Nếu có mã hóa, cần cung cấp đúng mật khẩu.
+
+    Cú pháp:
+      goldenshell extract <file> -o <output_dir> [-p password]
+
+    Ví dụ:
+      goldenshell extract output.pdf -o ./extracted/
+      goldenshell extract output.pdf -o ./extracted/ -p "mypassword"
     """
     console.print(BANNER_SMALL)
     console.print()
