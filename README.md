@@ -8,11 +8,11 @@ GoldenShell cho phép bạn nhúng một hoặc nhiều file bí mật vào bên
 
 | Tính năng | Mô tả |
 |-----------|-------|
-| **Giấu file** | Nhúng file vào bất kỳ carrier nào (PDF, PNG, JPEG, ZIP, MP3...) |
-| **Trích xuất** | Lấy lại file đã giấu, có kiểm tra tính toàn vẹn |
+| **Giấu file** | Nhúng hidden file vào bất kỳ carrier nào (PDF, PNG, JPEG, ZIP, MP3...) |
+| **Trích xuất** | Lấy lại hidden file đã giấu, có kiểm tra tính toàn vẹn |
 | **Mã hóa** | AES-256-GCM với mật khẩu (tùy chọn) |
-| **Nhiều file** | Giấu nhiều file cùng lúc trong một carrier |
-| **Nén dữ liệu** | Tự động nén payload để giảm kích thước output |
+| **Nhiều file** | Giấu nhiều hidden file cùng lúc trong một carrier |
+| **Nén dữ liệu** | Tự động nén hidden file để giảm kích thước output |
 
 ## Cài đặt
 
@@ -64,7 +64,7 @@ goldenshell hide secret.txt -c report.pdf -o output.pdf -p "pass"
 
 ---
 
-### Giấu nhiều file cùng lúc
+### Giấu nhiều hidden file cùng lúc
 
 ```bash
 goldenshell hide file1.txt file2.zip file3.docx -c anh.png -p "pass"
@@ -84,7 +84,7 @@ goldenshell hide /mnt/data/secret.zip -c /home/user/docs/report.pdf
 
 ---
 
-### Tắt nén (với file đã nén sẵn như ZIP, MP4)
+### Tắt nén (với hidden file đã nén sẵn như ZIP, MP4)
 
 ```bash
 goldenshell hide archive.zip -c anh.png --no-compress
@@ -108,12 +108,12 @@ goldenshell extract output.pdf -o ./ketqua/ -p "pass"
 
 ## Cách hoạt động
 
-GoldenShell nối dữ liệu ẩn vào sau phần cuối hợp lệ của file carrier. Các trình đọc file (PDF viewer, trình xem ảnh,...) chỉ đọc đến điểm kết thúc theo định dạng của chúng và bỏ qua phần còn lại — đây chính là nơi GoldenShell lưu payload.
+GoldenShell nối dữ liệu ẩn vào sau phần cuối hợp lệ của file carrier. Các trình đọc file (PDF viewer, trình xem ảnh,...) chỉ đọc đến điểm kết thúc theo định dạng của chúng và bỏ qua phần còn lại — đây chính là nơi GoldenShell lưu hidden file.
 
-Khi giấu file, payload đi qua các bước:
+Khi giấu file, hidden file đi qua các bước:
 
 ```
-File gốc → [Nén zlib] → [Mã hóa AES-256-GCM] → Nhúng vào cuối carrier
+Hidden file gốc → [Nén zlib] → [Mã hóa AES-256-GCM] → Nhúng vào cuối carrier
 ```
 
 Khi trích xuất, quá trình diễn ra ngược lại và có kiểm tra SHA-256 để đảm bảo dữ liệu nguyên vẹn.

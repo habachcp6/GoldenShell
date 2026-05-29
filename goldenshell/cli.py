@@ -2,7 +2,7 @@
 GoldenShell CLI — Giấu file bên trong file khác, có hỗ trợ mã hóa.
 
 Cú pháp:
-    goldenshell hide <payload...> -c <carrier> [-o output] [-p password]
+    goldenshell hide <hidden_file...> -c <carrier> [-o output] [-p password]
     goldenshell extract <file> -o <output_dir> [-p password]
 """
 
@@ -33,7 +33,7 @@ app = typer.Typer(
     help=(
         "🐚 [bold cyan]GoldenShell[/bold cyan] — Công cụ [bold]steganography[/bold] giấu file bên trong file khác, có mã hóa AES-256-GCM.\n\n"
         "[bold yellow]Cú pháp chung:[/bold yellow]\n"
-        "  goldenshell [bold]hide[/bold]    [dim]<payload...>[/dim] [bold]-c[/bold] [dim]<carrier>[/dim] [[bold]-o[/bold] output] [[bold]-p[/bold] password] [[bold]--no-compress[/bold]]\n"
+        "  goldenshell [bold]hide[/bold]    [dim]<hidden_file...>[/dim] [bold]-c[/bold] [dim]<carrier>[/dim] [[bold]-o[/bold] output] [[bold]-p[/bold] password] [[bold]--no-compress[/bold]]\n"
         "  goldenshell [bold]extract[/bold] [dim]<file>[/dim]       [[bold]-o[/bold] output_dir] [[bold]-p[/bold] password]\n\n"
         "[bold yellow]Ví dụ nhanh:[/bold yellow]\n"
         "  goldenshell hide secret.txt -c report.pdf\n"
@@ -79,7 +79,7 @@ def main(ctx: typer.Context):
         "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-o[/bold] output.pdf [bold]-p[/bold] \"pass\"\n\n"
         "  [dim]# Giấu nhiều file cùng lúc[/dim]\n"
         "  goldenshell hide file1.txt file2.zip photo.jpg [bold]-c[/bold] cover.png [bold]-p[/bold] \"pass\"\n\n"
-        "  [dim]# Tắt nén (khi payload là ZIP/MP4 đã nén sẵn)[/dim]\n"
+        "  [dim]# Tắt nén (khi hidden file là ZIP/MP4 đã nén sẵn)[/dim]\n"
         "  goldenshell hide archive.zip [bold]-c[/bold] cover.png [bold]--no-compress[/bold]\n\n"
         "  [dim]# Dùng đường dẫn tuyệt đối[/dim]\n"
         "  goldenshell hide /mnt/data/secret.zip [bold]-c[/bold] /home/user/report.pdf"
@@ -87,11 +87,11 @@ def main(ctx: typer.Context):
 )
 def hide(
     payloads: List[str] = typer.Argument(
-        ..., help="[bold]File(s) cần giấu[/bold] (payload). Có thể truyền nhiều file cách nhau bằng dấu cách."
+        ..., help="[bold]Hidden file(s) — file cần giấu[/bold]. Có thể truyền nhiều file cách nhau bằng dấu cách."
     ),
     carrier: str = typer.Option(
         ..., "--carrier", "-c",
-        help="[bold]File carrier[/bold] — file chứa payload ẩn bên trong (PDF, PNG, JPEG, ZIP, MP3,...). File này vẫn mở bình thường."
+        help="[bold]File carrier[/bold] — file chứa hidden file bên trong (PDF, PNG, JPEG, ZIP, MP3,...). File này vẫn mở bình thường."
     ),
     output: Optional[str] = typer.Option(
         None, "--output", "-o",
@@ -103,14 +103,13 @@ def hide(
     ),
     no_compress: bool = typer.Option(
         False, "--no-compress",
-        help="[bold]Tắt nén[/bold] — dùng khi payload đã nén sẵn (ZIP, MP4, RAR,...) để tránh tăng kích thước."
+        help="[bold]Tắt nén[/bold] — dùng khi hidden file đã nén sẵn (ZIP, MP4, RAR,...) để tránh tăng kích thước."
     ),
 ):
-    """
-    🔒 Giấu một hoặc nhiều file bên trong file carrier.
+    🔒 Giấu một hoặc nhiều hidden file bên trong file carrier.
 
-    File carrier [bold]vẫn mở và hoạt động bình thường[/bold] sau khi nhúng payload.
-    Payload được nén (zlib) và tùy chọn mã hóa (AES-256-GCM) trước khi nhúng.
+    File carrier [bold]vẫn mở và hoạt động bình thường[/bold] sau khi nhúng hidden file.
+    Hidden file được nén (zlib) và tùy chọn mã hóa (AES-256-GCM) trước khi nhúng.
     """
     console.print(BANNER_SMALL)
     console.print()
@@ -126,7 +125,7 @@ def hide(
 
     # Validate
     if not payload_paths:
-        console.print("[red]❌ Cần ít nhất một file payload.[/red]")
+        console.print("[red]❌ Cần ít nhất một hidden file.[/red]")
         raise typer.Exit(1)
 
     if not carrier_path.exists():
@@ -135,13 +134,13 @@ def hide(
 
     for p in payload_paths:
         if not p.exists():
-            console.print(f"[red]❌ Không tìm thấy file payload:[/red] {p}")
+            console.print(f"[red]❌ Không tìm thấy hidden file:[/red] {p}")
             raise typer.Exit(1)
 
     # Show operation summary
     console.print(f"[bold]📦 Carrier:[/bold] {carrier_path.name} ({format_size(carrier_path.stat().st_size)})")
     for p in payload_paths:
-        console.print(f"[bold]🔐 Payload:[/bold] {p.name} ({format_size(p.stat().st_size)})")
+        console.print(f"[bold]🔐 Hidden file:[/bold] {p.name} ({format_size(p.stat().st_size)})")
     console.print(f"[bold]📝 Output:[/bold]  {output_path}")
     if password:
         console.print("[bold]🔑 Encryption:[/bold] [green]AES-256-GCM[/green]")
@@ -154,7 +153,7 @@ def hide(
             BarColumn(),
             console=console,
         ) as progress:
-            task = progress.add_task("[cyan]Hiding payload...", total=100)
+            task = progress.add_task("[cyan]Hiding hidden file...", total=100)
 
             progress.update(task, advance=30, description="[cyan]Reading files...")
             result = engine_hide(
@@ -169,7 +168,7 @@ def hide(
         # Success summary
         console.print()
         panel_content = (
-            f"[green]✅ Payload hidden successfully![/green]\n\n"
+            f"[green]✅ Hidden file embedded successfully![/green]\n\n"
             f"  Output:      {output_path}\n"
             f"  Output size: {format_size(output_path.stat().st_size)}\n"
             f"  Encrypted:   {'✅ Yes' if result.is_encrypted else '❌ No'}\n"
@@ -240,7 +239,7 @@ def extract(
             BarColumn(),
             console=console,
         ) as progress:
-            task = progress.add_task("[cyan]Extracting payload...", total=100)
+            task = progress.add_task("[cyan]Extracting hidden file...", total=100)
 
             progress.update(task, advance=30, description="[cyan]Parsing header...")
             extracted_files = engine_extract(
