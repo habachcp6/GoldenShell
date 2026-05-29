@@ -30,10 +30,20 @@ from .core.engine import (
 console = Console()
 app = typer.Typer(
     name="goldenshell",
-    help="🐚 GoldenShell — Công cụ steganography có sử dụng thêm mã hóa để tăng tính bảo mật",
+    help=(
+        "🐚 [bold cyan]GoldenShell[/bold cyan] — Công cụ [bold]steganography[/bold] giấu file bên trong file khác, có mã hóa AES-256-GCM.\n\n"
+        "[bold yellow]Cú pháp chung:[/bold yellow]\n"
+        "  goldenshell [bold]hide[/bold]    [dim]<payload...>[/dim] [bold]-c[/bold] [dim]<carrier>[/dim] [[bold]-o[/bold] output] [[bold]-p[/bold] password] [[bold]--no-compress[/bold]]\n"
+        "  goldenshell [bold]extract[/bold] [dim]<file>[/dim]       [[bold]-o[/bold] output_dir] [[bold]-p[/bold] password]\n\n"
+        "[bold yellow]Ví dụ nhanh:[/bold yellow]\n"
+        "  goldenshell hide secret.txt -c report.pdf\n"
+        "  goldenshell hide secret.txt -c report.pdf -p \"pass\"\n"
+        "  goldenshell extract report.pdf -o ./output/ -p \"pass\""
+    ),
     add_completion=False,
     no_args_is_help=True,
     rich_markup_mode="rich",
+    epilog="Dùng [bold]goldenshell hide --help[/bold] hoặc [bold]goldenshell extract --help[/bold] để xem chi tiết từng lệnh.",
 )
 
 
@@ -58,36 +68,49 @@ def main(ctx: typer.Context):
         show_banner()
 
 
-@app.command()
+@app.command(
+    epilog=(
+        "[bold yellow]Ví dụ:[/bold yellow]\n\n"
+        "  [dim]# Giấu 1 file, output = tên carrier (report.pdf)[/dim]\n"
+        "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf\n\n"
+        "  [dim]# Giấu 1 file với mã hóa AES-256-GCM[/dim]\n"
+        "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-p[/bold] \"pass\"\n\n"
+        "  [dim]# Giấu 1 file, đặt tên output thủ công[/dim]\n"
+        "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-o[/bold] output.pdf [bold]-p[/bold] \"pass\"\n\n"
+        "  [dim]# Giấu nhiều file cùng lúc[/dim]\n"
+        "  goldenshell hide file1.txt file2.zip photo.jpg [bold]-c[/bold] cover.png [bold]-p[/bold] \"pass\"\n\n"
+        "  [dim]# Tắt nén (khi payload là ZIP/MP4 đã nén sẵn)[/dim]\n"
+        "  goldenshell hide archive.zip [bold]-c[/bold] cover.png [bold]--no-compress[/bold]\n\n"
+        "  [dim]# Dùng đường dẫn tuyệt đối[/dim]\n"
+        "  goldenshell hide /mnt/data/secret.zip [bold]-c[/bold] /home/user/report.pdf"
+    )
+)
 def hide(
     payloads: List[str] = typer.Argument(
-        ..., help="File(s) cần giấu (payload). Có thể truyền nhiều file."
+        ..., help="[bold]File(s) cần giấu[/bold] (payload). Có thể truyền nhiều file cách nhau bằng dấu cách."
     ),
     carrier: str = typer.Option(
-        ..., "--carrier", "-c", help="File carrier (PDF, PNG, JPEG,...)"
+        ..., "--carrier", "-c",
+        help="[bold]File carrier[/bold] — file chứa payload ẩn bên trong (PDF, PNG, JPEG, ZIP, MP3,...). File này vẫn mở bình thường."
     ),
     output: Optional[str] = typer.Option(
-        None, "--output", "-o", help="File output (mặc định: tự tạo tên từ carrier)"
+        None, "--output", "-o",
+        help="[bold]File output[/bold] — tên file kết quả. [dim]Mặc định: giữ nguyên tên carrier, lưu vào thư mục hiện tại.[/dim]"
     ),
     password: Optional[str] = typer.Option(
-        None, "--password", "-p", help="Mật khẩu mã hóa AES-256-GCM"
+        None, "--password", "-p",
+        help="[bold]Mật khẩu mã hóa[/bold] — dùng AES-256-GCM. [dim]Bỏ qua nếu không cần mã hóa.[/dim]"
     ),
     no_compress: bool = typer.Option(
-        False, "--no-compress", help="Tắt nén (dùng khi payload đã nén sẵn)"
+        False, "--no-compress",
+        help="[bold]Tắt nén[/bold] — dùng khi payload đã nén sẵn (ZIP, MP4, RAR,...) để tránh tăng kích thước."
     ),
 ):
     """
     🔒 Giấu một hoặc nhiều file bên trong file carrier.
 
-    File carrier vẫn mở bình thường sau khi nhúng payload. Dùng -p để mã hóa bằng AES-256-GCM.
-
-    Cú pháp:
-      goldenshell hide <payload...> -c <carrier> [-o output] [-p password]
-
-    Ví dụ:
-    goldenshell hide secret.txt -c report.pdf
-      goldenshell hide secret.txt -c report.pdf -p "pass"
-      goldenshell hide file1.txt file2.zip -c anh.png -p "pass"
+    File carrier [bold]vẫn mở và hoạt động bình thường[/bold] sau khi nhúng payload.
+    Payload được nén (zlib) và tùy chọn mã hóa (AES-256-GCM) trước khi nhúng.
     """
     console.print(BANNER_SMALL)
     console.print()
@@ -164,29 +187,37 @@ def hide(
         raise typer.Exit(1)
 
 
-@app.command()
+@app.command(
+    epilog=(
+        "[bold yellow]Ví dụ:[/bold yellow]\n\n"
+        "  [dim]# Trích xuất file không mã hóa vào thư mục ./output/[/dim]\n"
+        "  goldenshell extract report.pdf [bold]-o[/bold] ./output/\n\n"
+        "  [dim]# Trích xuất file có mã hóa, cung cấp mật khẩu[/dim]\n"
+        "  goldenshell extract report.pdf [bold]-o[/bold] ./output/ [bold]-p[/bold] \"pass\"\n\n"
+        "  [dim]# Dùng thư mục mặc định (./extracted/)[/dim]\n"
+        "  goldenshell extract report.pdf\n\n"
+        "  [dim]# Đường dẫn tuyệt đối[/dim]\n"
+        "  goldenshell extract /home/user/report.pdf [bold]-o[/bold] /tmp/result/ [bold]-p[/bold] \"pass\""
+    )
+)
 def extract(
     file: str = typer.Argument(
-        ..., help="File chứa dữ liệu ẩn cần trích xuất"
+        ..., help="[bold]File nguồn[/bold] — file chứa dữ liệu ẩn (đã được tạo bởi 'goldenshell hide')."
     ),
     output: str = typer.Option(
-        "./extracted", "--output", "-o", help="Thư mục lưu file đã trích xuất"
+        "./extracted", "--output", "-o",
+        help="[bold]Thư mục đầu ra[/bold] — nơi lưu các file được trích xuất. [dim]Mặc định: ./extracted/[/dim]"
     ),
     password: Optional[str] = typer.Option(
-        None, "--password", "-p", help="Mật khẩu giải mã"
+        None, "--password", "-p",
+        help="[bold]Mật khẩu giải mã[/bold] — bắt buộc nếu file được mã hóa bằng AES-256-GCM. [dim]Bỏ qua nếu không có mã hóa.[/dim]"
     ),
 ):
     """
     📤 Trích xuất file ẩn từ file steganography.
 
-    Khôi phục các file đã được nhúng bằng 'goldenshell hide'. Nếu có mã hóa, cần cung cấp đúng mật khẩu.
-
-    Cú pháp:
-      goldenshell extract <file> -o <output_dir> [-p password]
-
-    Ví dụ:
-      goldenshell extract output.pdf -o ./trich_xuat/
-      goldenshell extract output.pdf -o ./trich_xuat/ -p "pass"
+    Khôi phục các file đã nhúng bằng [bold]goldenshell hide[/bold].
+    Nếu file có mã hóa, [bold]phải cung cấp đúng mật khẩu[/bold] — sai password sẽ báo lỗi.
     """
     console.print(BANNER_SMALL)
     console.print()
