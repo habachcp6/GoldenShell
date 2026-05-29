@@ -18,33 +18,20 @@ GoldenShell cho phép bạn nhúng một hoặc nhiều file bí mật vào bên
 
 > **Yêu cầu**: Python 3.10 trở lên
 
-**Linux / macOS**
 ```bash
-git clone https://github.com/habachcp6/GoldenShell.git && cd GoldenShell
-bash install.sh
+git clone https://github.com/habachcp6/GoldenShell.git
+cd GoldenShell
+pip install .
 ```
 
-**Windows**
-```bat
-git clone https://github.com/habachcp6/GoldenShell.git && cd GoldenShell
-install.bat
-```
-
-Script cài đặt tự động tạo virtual environment và cài đầy đủ thư viện.
-
-Sau khi cài xong, kích hoạt môi trường và dùng ngay:
+Sau khi cài xong, dùng ngay:
 
 ```bash
-# Linux/macOS
-source venv/bin/activate
-
-# Windows
-venv\Scripts\activate
-
 goldenshell --help
 ```
 
 > Nếu không tìm thấy lệnh `goldenshell`, dùng `python -m goldenshell` thay thế.
+
 
 ## Sử dụng
 
