@@ -95,11 +95,11 @@ def hide(
     carrier_path = Path(carrier)
     payload_paths = [Path(p) for p in payloads]
 
-    # Auto-generate output name if not specified
+    # Auto-generate output: same name as carrier, in current directory
     if output:
         output_path = Path(output)
     else:
-        output_path = carrier_path.parent / f"{carrier_path.stem}_hidden{carrier_path.suffix}"
+        output_path = Path(carrier_path.name)
 
     # Validate
     if not payload_paths:

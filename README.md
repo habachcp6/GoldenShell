@@ -41,14 +41,14 @@ goldenshell --help
 goldenshell hide secret.txt -c report.pdf
 ```
 
-Output tự tạo tên: `report_hidden.pdf`
+Output giữ nguyên tên: `report.pdf` (lưu vào thư mục hiện tại)
 
 ---
 
 ### Giấu file — Có mã hóa AES-256-GCM
 
 ```bash
-goldenshell hide secret.txt -c report.pdf -p "matkhau"
+goldenshell hide secret.txt -c report.pdf -p "pass"
 ```
 
 ---
@@ -56,7 +56,7 @@ goldenshell hide secret.txt -c report.pdf -p "matkhau"
 ### Chỉ định tên output thủ công
 
 ```bash
-goldenshell hide secret.txt -c report.pdf -o output.pdf -p "matkhau"
+goldenshell hide secret.txt -c report.pdf -o output.pdf -p "pass"
 ```
 
 ---
@@ -64,7 +64,7 @@ goldenshell hide secret.txt -c report.pdf -o output.pdf -p "matkhau"
 ### Giấu nhiều file cùng lúc
 
 ```bash
-goldenshell hide file1.txt file2.zip file3.docx -c anh.png -p "matkhau"
+goldenshell hide file1.txt file2.zip file3.docx -c anh.png -p "pass"
 ```
 
 ---
@@ -98,7 +98,7 @@ goldenshell extract output.pdf -o ./ketqua/
 ### Trích xuất file — Có mã hóa
 
 ```bash
-goldenshell extract output.pdf -o ./ketqua/ -p "matkhau"
+goldenshell extract output.pdf -o ./ketqua/ -p "pass"
 ```
 
 
