@@ -15,38 +15,44 @@ fi
 PY_VERSION=$($PYTHON -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
 echo "OK: Python $PY_VERSION detected"
 
-echo "Installing GoldenShell..."
-
-# Try normal pip install first
-if $PYTHON -m pip install --quiet . 2>/dev/null; then
-    INSTALL_OK=true
-# Debian/Kali/Ubuntu: externally-managed-environment → try --break-system-packages
-elif $PYTHON -m pip install --quiet . --break-system-packages 2>/dev/null; then
-    INSTALL_OK=true
-    echo "NOTE: Installed with --break-system-packages (Debian/Kali mode)"
-# Fallback: pipx
-elif command -v pipx &>/dev/null; then
-    pipx install . --quiet
-    INSTALL_OK=true
-    echo "NOTE: Installed via pipx"
-else
-    echo ""
-    echo "ERROR: pip install failed. Try one of:"
-    echo "  1) pip install . --break-system-packages"
-    echo "  2) sudo apt install pipx -y && pipx install ."
-    exit 1
+# Detect if running on Debian/Kali/Ubuntu (externally-managed)
+EXTERNALLY_MANAGED=false
+SITE_PACKAGES=$($PYTHON -c "import sysconfig; print(sysconfig.get_path('stdlib'))")
+if [ -f "$SITE_PACKAGES/EXTERNALLY-MANAGED" ]; then
+    EXTERNALLY_MANAGED=true
 fi
+
+# If Debian/Kali: configure pip to allow system-wide install
+if [ "$EXTERNALLY_MANAGED" = true ]; then
+    echo "Detected: Debian/Kali/Ubuntu environment"
+    PIP_CONF_DIR="$HOME/.config/pip"
+    PIP_CONF_FILE="$PIP_CONF_DIR/pip.conf"
+    mkdir -p "$PIP_CONF_DIR"
+    if ! grep -q "break-system-packages" "$PIP_CONF_FILE" 2>/dev/null; then
+        cat >> "$PIP_CONF_FILE" << 'EOF'
+
+[global]
+break-system-packages = true
+EOF
+        echo "Configured: ~/.config/pip/pip.conf (break-system-packages = true)"
+    fi
+fi
+
+# Install
+echo "Installing GoldenShell..."
+$PYTHON -m pip install --quiet .
 
 echo ""
 echo "Installation complete!"
 echo ""
 
-# Check if goldenshell is in PATH
+# Check PATH
 if command -v goldenshell &>/dev/null; then
     echo "Usage: goldenshell --help"
 else
-    echo "NOTE: 'goldenshell' not found in PATH."
-    echo "Use: python3 -m goldenshell --help"
-    echo "Or add Python's bin dir to PATH:"
-    echo "  export PATH=\"\$($PYTHON -m site --user-base)/bin:\$PATH\""
+    USER_BIN=$($PYTHON -m site --user-base)/bin
+    echo "NOTE: Add Python bin to PATH if 'goldenshell' not found:"
+    echo "  export PATH=\"$USER_BIN:\$PATH\""
+    echo ""
+    echo "Or use: python3 -m goldenshell --help"
 fi
