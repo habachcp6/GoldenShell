@@ -1,8 +1,8 @@
 """
-GoldenShell CLI - Hide files inside other files.
+GoldenShell CLI — Giấu file bên trong file khác, có hỗ trợ mã hóa.
 
-Usage:
-    goldenshell hide <carrier> <payload...> -o <output> [-p password]
+Cú pháp:
+    goldenshell hide <payload...> -c <carrier> [-o output] [-p password]
     goldenshell extract <file> -o <output_dir> [-p password]
 """
 
@@ -85,9 +85,9 @@ def hide(
       goldenshell hide <payload...> -c <carrier> [-o output] [-p password]
 
     Ví dụ:
-      goldenshell hide secret.txt -c report.pdf
-      goldenshell hide secret.txt -c report.pdf -p "matkhau"
-      goldenshell hide file1.txt file2.zip -c anh.png -p "matkhau"
+    goldenshell hide secret.txt -c report.pdf
+      goldenshell hide secret.txt -c report.pdf -p "pass"
+      goldenshell hide file1.txt file2.zip -c anh.png -p "pass"
     """
     console.print(BANNER_SMALL)
     console.print()
@@ -167,13 +167,13 @@ def hide(
 @app.command()
 def extract(
     file: str = typer.Argument(
-        ..., help="Path to the file containing hidden data"
+        ..., help="File chứa dữ liệu ẩn cần trích xuất"
     ),
     output: str = typer.Option(
-        "./extracted", "--output", "-o", help="Output directory for extracted files"
+        "./extracted", "--output", "-o", help="Thư mục lưu file đã trích xuất"
     ),
     password: Optional[str] = typer.Option(
-        None, "--password", "-p", help="Password for decryption"
+        None, "--password", "-p", help="Mật khẩu giải mã"
     ),
 ):
     """
@@ -185,8 +185,8 @@ def extract(
       goldenshell extract <file> -o <output_dir> [-p password]
 
     Ví dụ:
-      goldenshell extract output.pdf -o ./extracted/
-      goldenshell extract output.pdf -o ./extracted/ -p "mypassword"
+      goldenshell extract output.pdf -o ./trich_xuat/
+      goldenshell extract output.pdf -o ./trich_xuat/ -p "pass"
     """
     console.print(BANNER_SMALL)
     console.print()
@@ -195,7 +195,7 @@ def extract(
     output_dir = Path(output)
 
     if not file_path.exists():
-        console.print(f"[red]❌ File not found:[/red] {file_path}")
+        console.print(f"[red]❌ Không tìm thấy file:[/red] {file_path}")
         raise typer.Exit(1)
 
     console.print(f"[bold]📂 Input:[/bold]  {file_path.name} ({format_size(file_path.stat().st_size)})")
