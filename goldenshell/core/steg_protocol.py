@@ -148,10 +148,24 @@ def find_footer(data: bytes) -> Optional[int]:
 
 def find_magic(data: bytes, search_start: int = 0) -> Optional[int]:
     """
-    Search for MAGIC bytes in data.
-    Returns position after the magic, or None if not found.
+    Search for the LAST MAGIC bytes that appears before the last FOOTER_MAGIC.
+
+    This ensures correct extraction when a carrier already contains a steg payload
+    (nested steg files). We always extract the outermost (most recent) payload.
+
+    Returns position after the magic bytes, or None if not found.
     """
-    idx = data.find(MAGIC, search_start)
+    # Find the last footer first
+    footer_pos = data.rfind(FOOTER_MAGIC)
+    if footer_pos == -1:
+        return None
+
+    # Find the last MAGIC that appears before this footer
+    search_region = data[search_start:footer_pos]
+    idx = search_region.rfind(MAGIC)
     if idx == -1:
         return None
-    return idx + len(MAGIC)
+
+    # idx is relative to search_region; adjust to absolute
+    abs_idx = search_start + idx
+    return abs_idx + len(MAGIC)
