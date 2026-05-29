@@ -127,12 +127,7 @@ File gốc → [Nén zlib] → [Mã hóa AES-256-GCM] → Nhúng vào cuối car
 
 Khi trích xuất, quá trình diễn ra ngược lại và có kiểm tra SHA-256 để đảm bảo dữ liệu nguyên vẹn.
 
-## Bảo mật
 
-- Mã hóa **AES-256-GCM** (xác thực + mã hóa)
-- Dẫn xuất khóa **PBKDF2-HMAC-SHA256** (600.000 vòng lặp)
-- Kiểm tra toàn vẹn **SHA-256** bằng so sánh constant-time
-- Bảo vệ chống **path traversal** khi giải nén tên file
 
 ## Tuyên bố
 
