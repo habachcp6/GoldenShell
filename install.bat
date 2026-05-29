@@ -51,4 +51,3 @@ if errorlevel 1 (
     echo Usage: goldenshell --help
 )
 echo.
-pause
