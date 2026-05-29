@@ -106,6 +106,7 @@ def hide(
         help="[bold]Tắt nén[/bold] — dùng khi hidden file đã nén sẵn (ZIP, MP4, RAR,...) để tránh tăng kích thước."
     ),
 ):
+    """
     🔒 Giấu một hoặc nhiều hidden file bên trong file carrier.
 
     File carrier [bold]vẫn mở và hoạt động bình thường[/bold] sau khi nhúng hidden file.
