@@ -21,4 +21,4 @@ BANNER = r"""
 [dim]  Steganography & Polyglot CLI Tool[/dim]
 """
 
-BANNER_SMALL = "[bold yellow]🐚 GoldenShell[/bold yellow] [dim]v1.0.0[/dim]"
+BANNER_SMALL = "[bold yellow]GoldenShell[/bold yellow] [dim]v1.0.0[/dim]"

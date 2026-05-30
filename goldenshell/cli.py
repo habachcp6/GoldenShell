@@ -22,7 +22,7 @@ from .core.engine import (
     IntegrityError,
 )
 
-console = Console(width=100)
+console = Console()
 
 
 # ---------------------------------------------------------------------------
