@@ -22,7 +22,7 @@ from .core.engine import (
     IntegrityError,
 )
 
-console = Console()
+console = Console(width=100)
 
 
 # ---------------------------------------------------------------------------
@@ -38,39 +38,171 @@ def format_size(size_bytes: int) -> str:
     return f"{size_bytes:.1f} TB"
 
 
+def _print_main_help():
+    """Render the main --help screen — clean CLI style."""
+    console.print(BANNER)
+    console.print()
+
+    # --- Syntax ---
+    console.print("[bold]Cú pháp:[/bold]")
+    console.print("  [white]goldenshell hide[/white]    [dim]secret.txt[/dim] -c [dim]report.pdf[/dim] [-o output.pdf] [-p \"pass\"] [--no-compress]")
+    console.print("  [white]goldenshell extract[/white] [dim]report.pdf[/dim] [-o ./output/] [-p \"pass\"]")
+    console.print()
+
+    # --- Commands ---
+    console.print("[bold]Câu lệnh:[/bold]")
+    cmds = Table(box=None, show_header=False, padding=(0, 2), pad_edge=False)
+    cmds.add_column(style="bold cyan", no_wrap=True)
+    cmds.add_column(style="white")
+    cmds.add_row("hide", "Giấu file vào trong carrier")
+    cmds.add_row("extract", "Trích xuất file đã giấu")
+    console.print(cmds)
+    console.print()
+
+    # --- Options ---
+    console.print("[bold]Tùy chọn:[/bold]")
+    opts = Table(box=None, show_header=False, padding=(0, 2), pad_edge=False)
+    opts.add_column(style="bold yellow", no_wrap=True)
+    opts.add_column(style="white", no_wrap=True)
+    opts.add_column(style="dim green", no_wrap=True)
+    opts.add_row("-c, --carrier FILE", "File carrier [dim](bắt buộc)[/dim]", "-c report.pdf")
+    opts.add_row("-o, --output PATH", "File hoặc thư mục đầu ra", "-o output.pdf")
+    opts.add_row("-p, --password TEXT", "Mật khẩu AES-256-GCM", '-p "mypassword"')
+    opts.add_row("--no-compress", "Tắt nén zlib", "")
+    opts.add_row("--help", "Hiển thị trợ giúp", "")
+    console.print(opts)
+    console.print()
+
+    # --- Examples ---
+    console.print("[bold]Ví dụ:[/bold]")
+    console.print("  [green]goldenshell hide secret.txt -c report.pdf[/green]")
+    console.print("  [green]goldenshell hide secret.txt -c report.pdf -p \"mypassword\"[/green]")
+    console.print("  [green]goldenshell hide secret.txt data.zip -c report.pdf -p \"mypassword\"[/green]")
+    console.print("  [green]goldenshell extract report.pdf -o ./output/[/green]")
+    console.print("  [green]goldenshell extract report.pdf -o ./output/ -p \"mypassword\"[/green]")
+    console.print()
+
+    console.print(
+        "[dim]Dùng [bold]goldenshell hide --help[/bold] hoặc "
+        "[bold]goldenshell extract --help[/bold] để xem chi tiết.[/dim]"
+    )
+    console.print()
+
+
+def _print_hide_help():
+    """Render the hide --help screen — clean CLI style."""
+    console.print(BANNER_SMALL)
+    console.print()
+
+    # --- Syntax ---
+    console.print("[bold]Lệnh: hide[/bold] — Giấu file vào trong carrier")
+    console.print()
+    console.print("[bold]Cú pháp:[/bold]")
+    console.print("  goldenshell hide [dim]secret.txt[/dim] -c [dim]report.pdf[/dim] [-o output.pdf] [-p \"pass\"] [--no-compress]")
+    console.print()
+
+    # --- Arguments ---
+    console.print("[bold]Tham số:[/bold]")
+    args = Table(box=None, show_header=False, padding=(0, 2), pad_edge=False)
+    args.add_column(style="bold magenta", no_wrap=True)
+    args.add_column(style="white", no_wrap=True)
+    args.add_column(style="dim green", no_wrap=True)
+    args.add_row("PAYLOADS FILE...", "File cần giấu [dim](bắt buộc)[/dim]", "secret.txt data.zip")
+    console.print(args)
+    console.print()
+
+    # --- Options ---
+    console.print("[bold]Tùy chọn:[/bold]")
+    opts = Table(box=None, show_header=False, padding=(0, 2), pad_edge=False)
+    opts.add_column(style="bold yellow", no_wrap=True)
+    opts.add_column(style="white", no_wrap=True)
+    opts.add_column(style="dim green", no_wrap=True)
+    opts.add_row("-c, --carrier FILE", "File carrier [dim](bắt buộc)[/dim]", "-c report.pdf")
+    opts.add_row("-o, --output FILE", "File đầu ra (mặc định: tên carrier)", "-o output.pdf")
+    opts.add_row("-p, --password TEXT", "Mật khẩu AES-256-GCM", '-p "mypassword"')
+    opts.add_row("--no-compress", "Tắt nén zlib", "")
+    opts.add_row("--help", "Hiển thị trợ giúp", "")
+    console.print(opts)
+    console.print()
+
+    # --- Examples ---
+    console.print("[bold]Ví dụ:[/bold]")
+    console.print("  [green]goldenshell hide secret.txt -c report.pdf[/green]")
+    console.print("  [green]goldenshell hide secret.txt -c report.pdf -p \"mypassword\"[/green]")
+    console.print("  [green]goldenshell hide secret.txt -c report.pdf -o output.pdf -p \"mypassword\"[/green]")
+    console.print("  [green]goldenshell hide secret.txt data.zip -c report.pdf -p \"mypassword\"[/green]")
+    console.print("  [green]goldenshell hide secret.zip -c report.pdf --no-compress[/green]")
+    console.print()
+
+
+def _print_extract_help():
+    """Render the extract --help screen — clean CLI style."""
+    console.print(BANNER_SMALL)
+    console.print()
+
+    # --- Syntax ---
+    console.print("[bold]Lệnh: extract[/bold] — Trích xuất file đã giấu")
+    console.print()
+    console.print("[bold]Cú pháp:[/bold]")
+    console.print("  goldenshell extract [dim]report.pdf[/dim] [-o ./output/] [-p \"mypassword\"]")
+    console.print()
+
+    # --- Arguments ---
+    console.print("[bold]Tham số:[/bold]")
+    args = Table(box=None, show_header=False, padding=(0, 2), pad_edge=False)
+    args.add_column(style="bold magenta", no_wrap=True)
+    args.add_column(style="white", no_wrap=True)
+    args.add_column(style="dim green", no_wrap=True)
+    args.add_row("FILE", "File chứa dữ liệu ẩn [dim](bắt buộc)[/dim]", "report.pdf")
+    console.print(args)
+    console.print()
+
+    # --- Options ---
+    console.print("[bold]Tùy chọn:[/bold]")
+    opts = Table(box=None, show_header=False, padding=(0, 2), pad_edge=False)
+    opts.add_column(style="bold yellow", no_wrap=True)
+    opts.add_column(style="white", no_wrap=True)
+    opts.add_column(style="dim green", no_wrap=True)
+    opts.add_row("-o, --output DIR", "Thư mục đầu ra (mặc định: ./extracted/)", "-o ./output/")
+    opts.add_row("-p, --password TEXT", "Mật khẩu giải mã AES-256-GCM", '-p "mypassword"')
+    opts.add_row("--help", "Hiển thị trợ giúp", "")
+    console.print(opts)
+    console.print()
+
+    # --- Examples ---
+    console.print("[bold]Ví dụ:[/bold]")
+    console.print("  [green]goldenshell extract report.pdf -o ./output/[/green]")
+    console.print("  [green]goldenshell extract report.pdf -o ./output/ -p \"mypassword\"[/green]")
+    console.print("  [green]goldenshell extract report.pdf[/green]")
+    console.print()
+
+
 # ---------------------------------------------------------------------------
 # App definition
 # ---------------------------------------------------------------------------
 
 app = typer.Typer(
     name="goldenshell",
-    help=(
-        "[bold cyan]GoldenShell[/bold cyan] — Công cụ steganography giấu file bên trong file khác, có mã hóa AES-256-GCM.\n\n"
-        "[bold yellow]Cú pháp:[/bold yellow]\n"
-        "  goldenshell [bold]hide[/bold]    [dim]<hidden_file...>[/dim] [bold]-c[/bold] [dim]<carrier>[/dim] [[bold]-o[/bold] output] [[bold]-p[/bold] password] [[bold]--no-compress[/bold]]\n"
-        "  goldenshell [bold]extract[/bold] [dim]<file>[/dim]           [[bold]-o[/bold] output_dir] [[bold]-p[/bold] password]\n\n"
-        "[bold yellow]Ví dụ nhanh:[/bold yellow]\n"
-        "  goldenshell hide secret.txt -c report.pdf\n"
-        "  goldenshell hide secret.txt -c report.pdf -p \"pass\"\n"
-        "  goldenshell extract report.pdf -o ./output/ -p \"pass\"\n\n"
-        "[bold yellow]Các tùy chọn phổ biến:[/bold yellow]\n\n"
-        "  [bold]-c, --carrier[/bold]      FILE    File carrier chứa hidden file bên trong\n"
-        "  [bold]-o, --output[/bold]       PATH    File / thư mục đầu ra\n"
-        "  [bold]-p, --password[/bold]     TEXT    Mật khẩu mã hóa / giải mã (AES-256-GCM)\n"
-        "  [bold]--no-compress[/bold]              Tắt nén (khi hidden file đã nén sẵn)\n\n"
-        "Dùng [bold]goldenshell hide --help[/bold] hoặc [bold]goldenshell extract --help[/bold] để xem đầy đủ."
-    ),
+    help="[bold cyan]GoldenShell[/bold cyan] — Công cụ steganography giấu file bên trong file khác, có mã hóa AES-256-GCM.",
     add_completion=False,
-    no_args_is_help=True,
+    no_args_is_help=False,
     rich_markup_mode="rich",
+    invoke_without_command=True,
 )
 
 
 @app.callback(invoke_without_command=True)
-def main(ctx: typer.Context):
+def main(
+    ctx: typer.Context,
+    help_flag: bool = typer.Option(False, "--help", "-h", is_eager=True, help="Hiển thị trợ giúp"),
+):
     """GoldenShell - Steganography CLI Tool"""
+    if help_flag:
+        _print_main_help()
+        raise typer.Exit(0)
     if ctx.invoked_subcommand is None:
-        show_banner()
+        _print_main_help()
+        raise typer.Exit(0)
 
 
 def show_banner():
@@ -82,58 +214,49 @@ def show_banner():
 # hide command
 # ---------------------------------------------------------------------------
 
-HIDE_EPILOG = (
-    "[bold yellow]Bảng tùy chọn:[/bold yellow]\n\n"
-    "  [bold]-c, --carrier[/bold]    FILE   [required] File carrier (PDF, PNG, JPEG, ZIP, MP3...)\n"
-    "  [bold]-o, --output[/bold]     FILE   Tên file output. Mặc định: giữ nguyên tên carrier\n"
-    "  [bold]-p, --password[/bold]   TEXT   Mật khẩu mã hóa AES-256-GCM. Bỏ qua nếu không cần\n"
-    "  [bold]--no-compress[/bold]           Tắt nén. Dùng khi hidden file đã nén sẵn (ZIP, MP4...)\n\n"
-    "[bold yellow]Ví dụ:[/bold yellow]\n\n"
-    "  # Giấu 1 file, output = tên carrier\n"
-    "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf\n\n"
-    "  # Giấu 1 file có mã hóa AES-256-GCM\n"
-    "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-p[/bold] \"pass\"\n\n"
-    "  # Giấu 1 file, đặt tên output thủ công\n"
-    "  goldenshell hide secret.txt [bold]-c[/bold] report.pdf [bold]-o[/bold] output.pdf [bold]-p[/bold] \"pass\"\n\n"
-    "  # Giấu nhiều file cùng lúc\n"
-    "  goldenshell hide file1.txt file2.zip photo.jpg [bold]-c[/bold] cover.png [bold]-p[/bold] \"pass\"\n\n"
-    "  # Tắt nén khi hidden file là ZIP/MP4 đã nén sẵn\n"
-    "  goldenshell hide archive.zip [bold]-c[/bold] cover.png [bold]--no-compress[/bold]\n\n"
-    "  # Dùng đường dẫn tuyệt đối\n"
-    "  goldenshell hide /mnt/data/secret.zip [bold]-c[/bold] /home/user/report.pdf"
-)
-
-
-@app.command(epilog=HIDE_EPILOG)
+@app.command()
 def hide(
     payloads: List[str] = typer.Argument(
-        ..., help="Hidden file(s) cần giấu. Có thể truyền nhiều file cách nhau bằng dấu cách."
+        None, help="Hidden file(s) cần giấu."
     ),
-    carrier: str = typer.Option(
-        ..., "--carrier", "-c",
-        help="File carrier — chứa hidden file bên trong (PDF, PNG, JPEG, ZIP, MP3...). File này vẫn mở bình thường."
+    carrier: Optional[str] = typer.Option(
+        None, "--carrier", "-c",
+        help="File carrier."
     ),
     output: Optional[str] = typer.Option(
         None, "--output", "-o",
-        help="Tên file output. Mặc định: giữ nguyên tên carrier, lưu vào thư mục hiện tại."
+        help="Tên file output."
     ),
     password: Optional[str] = typer.Option(
         None, "--password", "-p",
-        help="Mật khẩu mã hóa AES-256-GCM. Bỏ qua nếu không cần mã hóa."
+        help="Mật khẩu mã hóa AES-256-GCM."
     ),
     no_compress: bool = typer.Option(
         False, "--no-compress",
-        help="Tắt nén — dùng khi hidden file đã nén sẵn (ZIP, MP4, RAR...) để tránh tăng kích thước."
+        help="Tắt nén."
     ),
+    help_flag: bool = typer.Option(False, "--help", "-h", is_eager=True, help="Hiển thị trợ giúp"),
 ):
     """
     Giấu một hoặc nhiều hidden file bên trong file carrier.
-
-    File carrier vẫn mở và hoạt động bình thường sau khi nhúng hidden file.
-    Hidden file được nén (zlib) và tùy chọn mã hóa (AES-256-GCM) trước khi nhúng.
     """
+    if help_flag:
+        _print_hide_help()
+        raise typer.Exit(0)
+
     console.print(BANNER_SMALL)
     console.print()
+
+    # Validate required args manually since we disabled typer's auto-help
+    if not payloads:
+        console.print("[red]Lỗi: Cần ít nhất một hidden file.[/red]")
+        console.print("[dim]Dùng [bold]goldenshell hide --help[/bold] để xem hướng dẫn.[/dim]")
+        raise typer.Exit(1)
+
+    if not carrier:
+        console.print("[red]Lỗi: Thiếu tùy chọn --carrier (-c).[/red]")
+        console.print("[dim]Dùng [bold]goldenshell hide --help[/bold] để xem hướng dẫn.[/dim]")
+        raise typer.Exit(1)
 
     carrier_path = Path(carrier)
     payload_paths = [Path(p) for p in payloads]
@@ -143,11 +266,6 @@ def hide(
         output_path = Path(output)
     else:
         output_path = Path(carrier_path.name)
-
-    # Validate
-    if not payload_paths:
-        console.print("[red]Loi: Can it nhat mot hidden file.[/red]")
-        raise typer.Exit(1)
 
     if not carrier_path.exists():
         console.print(f"[red]Lỗi: Không tìm thấy file carrier:[/red] {carrier_path}")
@@ -219,44 +337,35 @@ def hide(
 # extract command
 # ---------------------------------------------------------------------------
 
-EXTRACT_EPILOG = (
-    "[bold yellow]Bảng tùy chọn:[/bold yellow]\n\n"
-    "  [bold]-o, --output[/bold]     DIR    Thư mục lưu file được trích xuất. Mặc định: ./extracted/\n"
-    "  [bold]-p, --password[/bold]   TEXT   Mật khẩu giải mã. Bắt buộc nếu file được mã hóa\n\n"
-    "[bold yellow]Ví dụ:[/bold yellow]\n\n"
-    "  # Trích xuất file không mã hóa vào thư mục ./output/\n"
-    "  goldenshell extract report.pdf [bold]-o[/bold] ./output/\n\n"
-    "  # Trích xuất file có mã hóa, cung cấp mật khẩu\n"
-    "  goldenshell extract report.pdf [bold]-o[/bold] ./output/ [bold]-p[/bold] \"pass\"\n\n"
-    "  # Dùng thư mục mặc định (./extracted/)\n"
-    "  goldenshell extract report.pdf\n\n"
-    "  # Đường dẫn tuyệt đối\n"
-    "  goldenshell extract /home/user/report.pdf [bold]-o[/bold] /tmp/result/ [bold]-p[/bold] \"pass\""
-)
-
-
-@app.command(epilog=EXTRACT_EPILOG)
+@app.command()
 def extract(
-    file: str = typer.Argument(
-        ..., help="File nguồn — file chứa dữ liệu ẩn (đã được tạo bởi 'goldenshell hide')."
+    file: Optional[str] = typer.Argument(
+        None, help="File nguồn chứa dữ liệu ẩn."
     ),
     output: str = typer.Option(
         "./extracted", "--output", "-o",
-        help="Thư mục đầu ra — nơi lưu các file được trích xuất. Mặc định: ./extracted/"
+        help="Thư mục đầu ra."
     ),
     password: Optional[str] = typer.Option(
         None, "--password", "-p",
-        help="Mật khẩu giải mã — bắt buộc nếu file được mã hóa bằng AES-256-GCM. Bỏ qua nếu không có mã hóa."
+        help="Mật khẩu giải mã AES-256-GCM."
     ),
+    help_flag: bool = typer.Option(False, "--help", "-h", is_eager=True, help="Hiển thị trợ giúp"),
 ):
     """
     Trích xuất hidden file từ file steganography.
-
-    Khôi phục các file đã nhúng bằng goldenshell hide.
-    Nếu file có mã hóa, phải cung cấp đúng mật khẩu — sai password sẽ báo lỗi.
     """
+    if help_flag:
+        _print_extract_help()
+        raise typer.Exit(0)
+
     console.print(BANNER_SMALL)
     console.print()
+
+    if not file:
+        console.print("[red]Lỗi: Cần cung cấp file nguồn.[/red]")
+        console.print("[dim]Dùng [bold]goldenshell extract --help[/bold] để xem hướng dẫn.[/dim]")
+        raise typer.Exit(1)
 
     file_path = Path(file)
     output_dir = Path(output)
