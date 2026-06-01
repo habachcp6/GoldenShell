@@ -122,6 +122,8 @@ Khi trích xuất, quá trình diễn ra ngược lại và có kiểm tra SHA-2
 
 ## Tuyên bố
 
+Công cụ này được tạo ra nhằm mục đích học tập và tìm hiểu cách hoạt động của steganography.
+
 Công cụ này chỉ dành cho **mục đích học tập và nghiên cứu bảo mật được ủy quyền**. Không sử dụng cho các hoạt động vi phạm pháp luật.
 
 ## Giấy phép
